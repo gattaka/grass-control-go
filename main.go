@@ -91,6 +91,17 @@ func main() {
 		searchInput := elements.Input{JSfunc: "window.location.href = '?search=' + this.value;"}
 		html.Add(&searchInput)
 
+		controlsDiv := elements.Div{}
+		controlsDiv.AddClass("controls-div")
+		html.Add(&controlsDiv)
+
+		controlsDiv.Add(&elements.Button{Value: "&#10006", JSfunc: ajax("clear")})
+		controlsDiv.Add(&elements.Button{Value: "&#9205;", JSfunc: ajax("play")})
+		controlsDiv.Add(&elements.Button{Value: "&#9208;", JSfunc: ajax("pause")})
+		controlsDiv.Add(&elements.Button{Value: "&#9198;", JSfunc: ajax("prev")})
+		controlsDiv.Add(&elements.Button{Value: "&#9209;", JSfunc: ajax("stop")})
+		controlsDiv.Add(&elements.Button{Value: "&#9197;", JSfunc: ajax("next")})
+
 		table := elements.Table[item]{}
 
 		searchQuery := r.URL.Query().Get("search")
@@ -122,8 +133,20 @@ func main() {
 		io.WriteString(w, styles)
 	})
 
+	http.HandleFunc("/clear", func(w http.ResponseWriter, r *http.Request) {
+		myVLC.EmptyPlaylist()
+	})
+
 	http.HandleFunc("/next", func(w http.ResponseWriter, r *http.Request) {
 		myVLC.Next()
+	})
+
+	http.HandleFunc("/prev", func(w http.ResponseWriter, r *http.Request) {
+		myVLC.Previous()
+	})
+
+	http.HandleFunc("/stop", func(w http.ResponseWriter, r *http.Request) {
+		myVLC.Stop()
 	})
 
 	http.HandleFunc("/add", func(w http.ResponseWriter, r *http.Request) {
