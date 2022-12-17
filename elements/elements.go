@@ -32,15 +32,29 @@ func render(e Element) string {
 }
 
 // Text
+type Button struct {
+	Value  string
+	JSfunc string
+}
+
+func (d *Button) getElements() []Element         { return nil }
+func (d *Button) setElements(elements []Element) {}
+func (d *Button) Add(e Element)                  {}
+func (d *Button) getTag() string                 { return "" }
+func (d *Button) Render() string {
+	return "<input type=\"button\" value=\"" + d.Value + "\" onclick=\"" + d.JSfunc + "\">"
+}
+
+// Text
 type Text struct {
 	Value string
 }
 
-func (d Text) getElements() []Element         { return nil }
-func (d Text) setElements(elements []Element) {}
-func (d Text) Add(e Element)                  {}
-func (d Text) getTag() string                 { return "" }
-func (d Text) Render() string                 { return d.Value }
+func (d *Text) getElements() []Element         { return nil }
+func (d *Text) setElements(elements []Element) {}
+func (d *Text) Add(e Element)                  {}
+func (d *Text) getTag() string                 { return "" }
+func (d *Text) Render() string                 { return d.Value }
 
 // Div
 type Div struct {
@@ -55,12 +69,12 @@ func (d *Div) Render() string              { return render(d) }
 
 // Headers
 type Header struct {
-	level    int
+	Level    int
 	elements []Element
 }
 
 func (d *Header) getElements() []Element         { return d.elements }
 func (d *Header) setElements(elements []Element) { d.elements = elements }
 func (d *Header) Add(e Element)                  { add(d, e) }
-func (d *Header) getTag() string                 { return "h" + strconv.Itoa(d.level) }
+func (d *Header) getTag() string                 { return "h" + strconv.Itoa(d.Level) }
 func (d *Header) Render() string                 { return render(d) }
