@@ -1,9 +1,9 @@
-package elements
+package ui
 
 type Html struct {
 	elements []*Element
 	Css      string
-	CssFiles []string
+	Headers  []string
 	classes  []string
 }
 
@@ -13,9 +13,9 @@ func (d *Html) Add(e Element)            { add(d, e) }
 func (d *Html) getTag() string           { return "html" }
 func (d *Html) Render() string {
 	result := "<html><head>"
-	if len(d.CssFiles) > 0 {
-		for _, css := range d.CssFiles {
-			result += "<link rel=\"stylesheet\" href=\"" + css + "\">"
+	if len(d.Headers) > 0 {
+		for _, header := range d.Headers {
+			result += header
 		}
 	}
 	result += "<style>"
@@ -30,3 +30,4 @@ func (d *Html) Render() string {
 	result += "</body></html>"
 	return result
 }
+func (d *Html) AddClass(s string) { addClass(d, s) }

@@ -1,4 +1,4 @@
-package elements
+package ui
 
 type TableColumn[T any] struct {
 	Name     string
@@ -28,3 +28,4 @@ func (d *Table[T]) Render() string {
 	return result
 }
 func (d *Table[T]) getClasses() *[]string { return &d.classes }
+func (d *Table[T]) AddClass(s string)     { addClass(d, s) }

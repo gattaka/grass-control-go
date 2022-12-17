@@ -1,8 +1,11 @@
-package elements
+package ui
+
+import "strings"
 
 type Element interface {
 	Render() string
 	getClasses() *[]string
+	AddClass(s string)
 }
 
 type HasElements interface {
@@ -30,7 +33,11 @@ func addClass(e Element, s string) {
 
 func render(e HasElements) string {
 	result := ""
-	result += "<" + e.getTag() + ">"
+	result += "<" + e.getTag()
+	if e.getClasses() != nil {
+		result += " class=\"" + strings.Join(*e.getClasses(), " ") + "\" "
+	}
+	result += ">"
 	if e.getElements() != nil {
 		for _, s := range *e.getElements() {
 			result += (*s).Render()

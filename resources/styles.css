@@ -1,17 +1,10 @@
 :root {
     --spacing: 5px;
+    --scrollbar-width: 10px
 }
 
 html, input {
     font-family: system-ui;
-}
-
-input[type="text"] {
-    padding: var(--spacing);
-    margin-bottom: calc(2 * var(--spacing));
-    background: white;
-    border: 1px solid darkgray;
-    border-radius: 5px;
 }
 
 body {
@@ -23,9 +16,75 @@ body {
     box-sizing: border-box;
 }
 
+/* width */
+::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
 h1 {
     margin: 0 0 calc(3 * var(--spacing)) 0;
     padding: 0;
+    font-variant: small-caps;
+}
+
+input[type="text"] {
+    padding: var(--spacing);
+    background: white;
+}
+
+input[type="button"] {
+    cursor: pointer;
+}
+
+input[type="button"]:hover {
+    background: lightgray;
+}
+
+input[type="text"], input[type="button"] {
+    border: 1px solid darkgray;
+    border-radius: 5px;
+}
+
+.controls-div, .location-div {
+    padding: 0 0 calc(2 * var(--spacing)) 0;
+    display: flex;
+    align-items: center;
+}
+
+.controls-div input[type="button"], .location-div * {
+    font-size: 18px;
+    margin-right: var(--spacing);
+}
+
+.controls-div input[type="button"], .location-div input[type="button"] {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+
+.location-div {
+    font-style: italic;
+}
+
+.search-div {
+    margin-bottom: calc(2 * var(--spacing));
 }
 
 .table-div {
@@ -39,10 +98,31 @@ h1 {
 .table-head-tr-div {
     background: #eee;
     border-bottom: 1px solid darkgray;
+    padding-right: var(--scrollbar-width);
+}
+
+.table-head-td-div, .table-body-td-div {
+    border-left: 1px solid darkgray;
+}
+
+.table-head-td-div:first-child, .table-body-td-div:first-child {
+    border-left: none;
 }
 
 .table-body-div {
-    overflow: auto;
+    overflow-y: scroll;
+}
+
+.table-body-div .table-body-tr-div {
+    border-top: 1px solid #ddd;
+}
+
+.table-body-tr-div:first-child {
+    border-top: none;
+}
+
+.table-body-tr-div:nth-child(even) {
+    background-color: #f2f2f2;
 }
 
 .table-body-td-div, .table-head-td-div {
@@ -52,14 +132,10 @@ h1 {
     width: 50%;
 }
 
-.table-body-tr-div:nth-child(even) {
-    background-color: #f2f2f2;
+.table-body-td-div, .table-body-td-div input[type="button"] {
+    font-size: 14px;
 }
 
-.table-body-div .table-body-tr-div {
-    border-top: 1px solid #ddd;
-}
-
-.table-body-tr-div:first-child {
-    border-top: none;
+.table-body-td-div * {
+    margin-right: var(--spacing);
 }

@@ -1,4 +1,4 @@
-package elements
+package ui
 
 type Div struct {
 	elements []*Element
