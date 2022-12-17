@@ -1,0 +1,65 @@
+:root {
+    --spacing: 5px;
+}
+
+html, input {
+    font-family: system-ui;
+}
+
+input[type="text"] {
+    padding: var(--spacing);
+    margin-bottom: calc(2 * var(--spacing));
+    background: white;
+    border: 1px solid darkgray;
+    border-radius: 5px;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: calc(2 * var(--spacing));
+    box-sizing: border-box;
+}
+
+h1 {
+    margin: 0 0 calc(3 * var(--spacing)) 0;
+    padding: 0;
+}
+
+.table-div {
+    border: 1px solid darkgray;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.table-head-tr-div {
+    background: #eee;
+    border-bottom: 1px solid darkgray;
+}
+
+.table-body-div {
+    overflow: auto;
+}
+
+.table-body-td-div, .table-head-td-div {
+    display: inline-block;
+    padding: var(--spacing);
+    box-sizing: border-box;
+    width: 50%;
+}
+
+.table-body-tr-div:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.table-body-div .table-body-tr-div {
+    border-top: 1px solid #ddd;
+}
+
+.table-body-tr-div:first-child {
+    border-top: none;
+}

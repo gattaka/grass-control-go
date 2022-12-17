@@ -1,21 +1,72 @@
 package main
 
 import (
-	"fmt"
 	vlcctrl "github.com/CedArctic/go-vlc-ctrl"
 	"grass-control-go/elements"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"strings"
 )
+
+import _ "embed"
 
 // https://github.com/CedArctic/go-vlc-ctrl
 // https://pkg.go.dev/github.com/adrg/libvlc-go/v2
+// https://tutorialedge.net/golang/creating-simple-web-server-with-golang/
 
 const vlcPort = 8080
 const vlcPass = "vlcgatt"
+const playerRoot = "D:/Hudba"
+
+//go:embed resources/styles.css
+var styles string
+
+type item struct {
+	isDir  bool
+	name   string
+	path   string
+	items  []*item
+	parent *item
+}
+
+func find(value string, root *item, items *[]*item) {
+	value = strings.ToLower(value)
+	for _, itm := range root.items {
+		if strings.Contains(strings.ToLower(itm.name), value) {
+			*items = append(*items, itm)
+		}
+		if itm.isDir {
+			find(value, itm, items)
+		}
+	}
+}
+
+func indexDir(parent *item) {
+	files, err := os.ReadDir(parent.path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(files) > 0 {
+		parent.items = make([]*item, len(files))
+		for i, file := range files {
+			child := item{name: file.Name(), path: parent.path + "/" + file.Name(), isDir: file.IsDir(), parent: parent}
+			parent.items[i] = &child
+			if file.IsDir() {
+				indexDir(&child)
+			}
+		}
+	}
+}
 
 func main() {
+
+	// Indexace
+	root := item{name: "Hudba", path: playerRoot, isDir: true}
+	indexDir(&root)
 
 	// Declare a local VLC instance on port 8080 with password "password"
 	myVLC, err := vlcctrl.NewVLC("127.0.0.1", vlcPort, vlcPass)
@@ -30,20 +81,45 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		div := elements.Div{}
+		html := elements.Html{}
+		html.CssFiles = []string{"resources/styles.css"}
 
 		header := elements.Header{Level: 1}
 		header.Add(&elements.Text{Value: "GrassControl"})
-		div.Add(&header)
+		html.Add(&header)
 
-		ids := []string{"JINE/Godfather.mp3", "JINE/Mafia - Main Theme.mp3"}
-		for _, id := range ids {
-			div.Add(&elements.Button{Value: id, JSfunc: ajax("add?id=" + id)})
-			div.Add(&elements.Text{Value: "<br/>"})
+		searchInput := elements.Input{JSfunc: "window.location.href = '?search=' + this.value;"}
+		html.Add(&searchInput)
+
+		table := elements.Table[item]{}
+
+		searchQuery := r.URL.Query().Get("search")
+		if searchQuery != "" {
+			find(searchQuery, &root, &table.Items)
+		} else {
+			table.Items = root.items
 		}
 
-		result := div.Render()
-		fmt.Fprintf(w, result)
+		table.Columns = make([]elements.TableColumn[item], 2)
+		table.Columns[0] = elements.TableColumn[item]{Name: "Název", Renderer: func(itm item) string {
+			btn := elements.Button{Value: itm.name, JSfunc: ajax("add?id=" + itm.path)}
+			return btn.Render()
+		}}
+		table.Columns[1] = elements.TableColumn[item]{Name: "Nadřazený adresář", Renderer: func(itm item) string {
+			if itm.parent == nil {
+				return ""
+			}
+			btn := elements.Button{Value: itm.parent.name, JSfunc: ajax("add?id=" + itm.parent.path)}
+			return btn.Render()
+		}}
+		html.Add(&table)
+
+		result := html.Render()
+		io.WriteString(w, result)
+	})
+
+	http.HandleFunc("/resources/styles.css", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, styles)
 	})
 
 	http.HandleFunc("/next", func(w http.ResponseWriter, r *http.Request) {
