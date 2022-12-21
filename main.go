@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -29,10 +30,14 @@ const vlcPort = 8080
 const vlcPass = "vlcgatt"
 const playerRoot = "D:/Hudba"
 
+func initIndexer(indexer *indexer.Indexer) {
+	indexer.Init(vlcPort, vlcPass, playerRoot)
+}
+
 func main() {
 
-	index := indexer.Indexer{}
-	index.Init(vlcPort, vlcPass, playerRoot)
+	indexer := indexer.Indexer{}
+	initIndexer(&indexer)
 
 	// Declare a local VLC instance on port 8080 with password "password"
 	myVLC, err := vlcctrl.NewVLC("127.0.0.1", vlcPort, vlcPass)
@@ -45,7 +50,7 @@ func main() {
 			// hledá se cokoliv dle názvu
 			searchQuery := r.URL.Query().Get("search")
 			if searchQuery != "" {
-				ui.ConstructPage(index.FindByString(searchQuery), w, true, searchQuery)
+				ui.ConstructPage(indexer.FindByString(searchQuery), w, true, searchQuery)
 				return
 			}
 		} else if r.URL.Query().Has("dir") {
@@ -54,13 +59,13 @@ func main() {
 			path := strings.Trim(dirQuery, "/")
 			if len(path) > 0 {
 				parts := strings.Split(path, "/")
-				ui.ConstructPage(index.FindByPath(parts), w, false, dirQuery)
+				ui.ConstructPage(indexer.FindByPath(parts), w, false, dirQuery)
 				return
 			}
 		}
 
 		// výchozí pohled
-		ui.ConstructPage(index.GetAllItems(), w, false, "/")
+		ui.ConstructPage(indexer.GetAllItems(), w, false, "/")
 	})
 
 	http.HandleFunc("/resources/styles.css", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, styles) })
@@ -90,7 +95,11 @@ func main() {
 	http.HandleFunc("/addAndPlay", func(w http.ResponseWriter, r *http.Request) {
 		myVLC.AddStart(prepareURLForVLC(r.URL.Query().Get("id")))
 	})
+	http.HandleFunc("/reindex", func(w http.ResponseWriter, r *http.Request) {
+		initIndexer(&indexer)
+		ui.ConstructPage(indexer.GetAllItems(), w, false, "/")
+	})
+	http.HandleFunc("/quit", func(w http.ResponseWriter, r *http.Request) { os.Exit(0) })
 
 	log.Fatal(http.ListenAndServe(":8888", nil))
-
 }

@@ -34,7 +34,7 @@ func addClass(e Element, s string) {
 func render(e HasElements) string {
 	result := ""
 	result += "<" + e.getTag()
-	if e.getClasses() != nil {
+	if e.getClasses() != nil && len(*e.getClasses()) > 0 {
 		result += " class=\"" + strings.Join(*e.getClasses(), " ") + "\" "
 	}
 	result += ">"

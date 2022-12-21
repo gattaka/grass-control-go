@@ -19,17 +19,31 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 		"<link rel=\"stylesheet\" href=\"resources/styles.css\"/>",
 		"<link href=\"resources/favicon.png\" rel=\"icon\" sizes=\"16px\">",
 	}
-	header := Header{Level: 1}
-	header.Add(&Text{Value: "GrassControl"})
-	html.Add(&header)
 
-	searchInput := Input{JSfunc: "window.location.href = '?search=' + this.value;"}
+	menuDiv := Div{}
+	menuDiv.AddClass("menu-div")
+	html.Add(&menuDiv)
+
+	logoAnchor := Anchor{Value: "GrassControl", Link: "/"}
+	menuDiv.Add(&logoAnchor)
+
+	reindexAnchor := Anchor{Value: "Reindex", Link: "/reindex"}
+	menuDiv.Add(&reindexAnchor)
+
+	quitAnchor := Anchor{Value: "Ukončit", Link: "/quit"}
+	menuDiv.Add(&quitAnchor)
+
+	mainDiv := Div{}
+	mainDiv.AddClass("main-div")
+	html.Add(&mainDiv)
+
+	searchInput := Input{JSfunc: "window.location.href = '/?search=' + this.value;"}
 	searchInput.AddClass("search-div")
-	html.Add(&searchInput)
+	mainDiv.Add(&searchInput)
 
 	controlsDiv := Div{}
 	controlsDiv.AddClass("controls-div")
-	html.Add(&controlsDiv)
+	mainDiv.Add(&controlsDiv)
 
 	controlsDiv.Add(&Button{Value: "&#10006", JSfunc: ajax("clear")})
 	controlsDiv.Add(&Button{Value: "&#9199;", JSfunc: ajax("pause")})
@@ -40,7 +54,7 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 	// Výpis aktuálního umístění
 	locationDiv := Div{}
 	locationDiv.AddClass("location-div")
-	html.Add(&locationDiv)
+	mainDiv.Add(&locationDiv)
 	if fromSearch {
 		locationDiv.Add(&Text{Value: "Vypisuji výsledek vyhledávání \"" + query + "\""})
 	} else {
@@ -80,7 +94,7 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 		render += dirBtn.Render()
 		return render
 	}}
-	html.Add(&table)
+	mainDiv.Add(&table)
 
 	result := html.Render()
 	io.WriteString(w, result)

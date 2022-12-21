@@ -1,19 +1,52 @@
 :root {
     --spacing: 5px;
-    --scrollbar-width: 10px
+    --scrollbar-width: 10px;
+    --menu-height: 30px;
+    --menu-color: hsl(0deg 0% 10%);
 }
 
-html, input {
+html, input, a {
     font-family: system-ui;
 }
 
 body {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
     margin: 0;
+    padding: 0;
+}
+
+.menu-div {
+    background: hsl(0deg 0% 80%);
+    border-bottom: 1px solid hsl(0deg 0% 64%);
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    box-sizing: border-box;
+    color: var(--menu-color);
+}
+
+.menu-div a {
+    color: var(--menu-color);
+    font-size: 15px;
+    font-variant: all-small-caps;
+    text-decoration: none;
+    padding: 3px 10px 6px 10px;
+}
+
+.menu-div a:first-child {
+    margin-left: 0;
+}
+
+.menu-div a:hover {
+    color: hsl(0deg 0% 95%);
+    background: grey;
+}
+
+.main-div {
     padding: calc(2 * var(--spacing));
     box-sizing: border-box;
+    height: calc(100vh - var(--menu-height));
+    display: flex;
+    flex-direction: column;
 }
 
 /* width */
