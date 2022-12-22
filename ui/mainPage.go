@@ -7,16 +7,24 @@ import (
 	"strings"
 )
 
+func ajaxCallback(url string, callback string) string {
+	call := "ajaxCall('" + url + "'"
+	if callback != "" {
+		call += "," + callback
+	}
+	call += ")"
+	return call
+}
+
 func ajax(url string) string {
-	return `const xhttp = new XMLHttpRequest();
-					xhttp.open('GET', '` + url + `', true);
-					xhttp.send()`
+	return ajaxCallback(url, "")
 }
 
 func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool, query string) {
 	html := Html{}
 	html.Headers = []string{
 		"<link rel=\"stylesheet\" href=\"resources/styles.css\"/>",
+		"<script type=\"text/javascript\" src=\"resources/scripts.js\"></script>",
 		"<link href=\"resources/favicon.png\" rel=\"icon\" sizes=\"16px\">",
 	}
 
@@ -24,20 +32,16 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 	menuDiv.AddClass("menu-div")
 	html.Add(&menuDiv)
 
-	logoAnchor := Anchor{Value: "GrassControl", Link: "/"}
-	menuDiv.Add(&logoAnchor)
-
-	reindexAnchor := Anchor{Value: "Reindex", Link: "/reindex"}
-	menuDiv.Add(&reindexAnchor)
-
-	quitAnchor := Anchor{Value: "Ukončit", Link: "/quit"}
-	menuDiv.Add(&quitAnchor)
+	menuDiv.Add(NewAnchor("GrassControl", "/"))
+	menuDiv.Add(NewAnchor("Reindex", "/reindex"))
+	menuDiv.Add(NewAnchor("Ukončit", "/quit"))
 
 	mainDiv := Div{}
 	mainDiv.AddClass("main-div")
 	html.Add(&mainDiv)
 
-	searchInput := Input{JSfunc: "window.location.href = '/?search=' + this.value;"}
+	searchInput := Input{}
+	searchInput.SetOnChange("window.location.href = '/?search=' + this.value;")
 	searchInput.AddClass("search-div")
 	mainDiv.Add(&searchInput)
 
@@ -45,26 +49,28 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 	controlsDiv.AddClass("controls-div")
 	mainDiv.Add(&controlsDiv)
 
-	controlsDiv.Add(&Button{Value: "&#10006", JSfunc: ajax("clear")})
-	controlsDiv.Add(&Button{Value: "&#9199;", JSfunc: ajax("pause")})
-	controlsDiv.Add(&Button{Value: "&#9198;", JSfunc: ajax("prev")})
-	controlsDiv.Add(&Button{Value: "&#9209;", JSfunc: ajax("stop")})
-	controlsDiv.Add(&Button{Value: "&#9197;", JSfunc: ajax("next")})
+	controlsDiv.Add(NewButton("&#10006", ajax("clear")))
+	controlsDiv.Add(NewButton("", ajax("pause")).AddClass("pause-btn"))
+	controlsDiv.Add(NewButton("", ajax("prev")).AddClass("prev-btn"))
+	controlsDiv.Add(NewButton("", ajax("stop")).AddClass("stop-btn"))
+	controlsDiv.Add(NewButton("", ajax("next")).AddClass("next-btn"))
+	controlsDiv.Add(NewButton("", ajax("loop")).AddClass("loop-btn"))
+	controlsDiv.Add(NewButton("", ajax("shuffle")).AddClass("shuffle-btn"))
 
 	// Výpis aktuálního umístění
 	locationDiv := Div{}
 	locationDiv.AddClass("location-div")
 	mainDiv.Add(&locationDiv)
 	if fromSearch {
-		locationDiv.Add(&Text{Value: "Vypisuji výsledek vyhledávání \"" + query + "\""})
+		locationDiv.SetValue("Vypisuji výsledek vyhledávání \"" + query + "\"")
 	} else {
 		returnQuery := "/"
 		lastIndex := strings.LastIndex(query, "/")
 		if lastIndex > 0 {
 			returnQuery = query[:lastIndex]
 		}
-		locationDiv.Add(&Button{Value: "&#11181;", JSfunc: "window.location.href = '?dir=" + returnQuery + "';"})
-		locationDiv.Add(&Text{Value: "Vypisuji výsledek adresáře \"" + query + "\""})
+		locationDiv.Add(NewButton("&#11181;", "window.location.href = '?dir="+returnQuery+"';"))
+		locationDiv.Add(NewSpan("Vypisuji výsledek adresáře \"" + query + "\""))
 	}
 
 	table := Table[indexer.Item]{}
@@ -72,11 +78,11 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 
 	table.Columns = make([]TableColumn[indexer.Item], 2)
 	table.Columns[0] = TableColumn[indexer.Item]{Name: "Název", Renderer: func(itm indexer.Item) string {
-		addAndPlayBtn := Button{Value: "&#9205;", JSfunc: ajax("addAndPlay?id=" + itm.GetPath())}
-		addBtn := Button{Value: "&#65291", JSfunc: ajax("add?id=" + itm.GetPath())}
+		addAndPlayBtn := NewButton("&#9205;", ajax("addAndPlay?id="+itm.GetPath()))
+		addBtn := NewButton("&#65291", ajax("add?id="+itm.GetPath()))
 		render := addAndPlayBtn.Render() + addBtn.Render()
 		if itm.IsDir() {
-			dirBtn := Button{Value: itm.GetName(), JSfunc: "window.location.href = '?dir=" + itm.GetPath() + "';"}
+			dirBtn := NewButton(itm.GetName(), "window.location.href = '?dir="+itm.GetPath()+"';")
 			render += dirBtn.Render()
 		} else {
 			render += itm.GetName()
@@ -87,10 +93,10 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 		if !itm.HasParent() {
 			return ""
 		}
-		addAndPlayBtn := Button{Value: "&#9205;", JSfunc: ajax("addAndPlay?id=" + itm.GetParent().GetPath())}
-		addBtn := Button{Value: "&#65291", JSfunc: ajax("add?id=" + itm.GetParent().GetPath())}
+		addAndPlayBtn := NewButton("&#9205;", ajax("addAndPlay?id="+itm.GetParent().GetPath()))
+		addBtn := NewButton("&#65291", ajax("add?id="+itm.GetParent().GetPath()))
 		render := addAndPlayBtn.Render() + addBtn.Render()
-		dirBtn := Button{Value: itm.GetParent().GetName(), JSfunc: "window.location.href = '?dir=" + itm.GetParent().GetPath() + "';"}
+		dirBtn := NewButton(itm.GetParent().GetName(), "window.location.href = '?dir="+itm.GetParent().GetPath()+"';")
 		render += dirBtn.Render()
 		return render
 	}}

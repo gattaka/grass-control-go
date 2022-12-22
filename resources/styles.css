@@ -30,6 +30,7 @@ body {
     font-variant: all-small-caps;
     text-decoration: none;
     padding: 3px 10px 6px 10px;
+    cursor: pointer;
 }
 
 .menu-div a:first-child {
@@ -82,15 +83,20 @@ input[type="text"] {
 
 input[type="button"] {
     cursor: pointer;
+    background-color: #f0f0f0;
 }
 
 input[type="button"]:hover {
-    background: lightgray;
+    background-color: lightgray;
 }
 
 input[type="text"], input[type="button"] {
     border: 1px solid darkgray;
     border-radius: 5px;
+}
+
+input[type="button"] .selected {
+    border: 1px solid #2196f3;
 }
 
 .controls-div, .location-div {
@@ -105,15 +111,49 @@ input[type="text"], input[type="button"] {
 }
 
 .controls-div input[type="button"], .location-div input[type="button"] {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     display: flex;
     justify-content: center;
 }
 
+.pause-btn, .play-btn, .prev-btn, .stop-btn, .next-btn, .loop-btn, .shuffle-btn {
+    background-image: url(/resources/icons.png);
+    background-size: 128px;
+}
+
+.pause-btn {
+    background-position: calc(-2 * 32px - 1px) -1px;
+    margin-left: var(--spacing);
+}
+
+.prev-btn {
+    background-position: -1px calc(-32px - 1px);
+}
+
+.stop-btn {
+    background-position: calc(-3 * 32px - 1px) -1px;
+}
+
+.next-btn {
+    background-position: calc(-32px - 1px) calc(-32px - 1px);
+}
+
+.loop-btn {
+    background-position: calc(-32px - 1px) calc(-3 * 32px - 1px);
+    margin-left: var(--spacing);
+}
+
+.shuffle-btn {
+    background-position: calc(-1px) calc(-3 * 32px - 1px);
+}
 
 .location-div {
     font-style: italic;
+}
+
+.location-div span {
+    font-size: 16px;
 }
 
 .search-div {

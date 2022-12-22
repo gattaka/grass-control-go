@@ -1,13 +1,14 @@
 package ui
 
 type Div struct {
-	elements []*Element
-	classes  []string
+	cmn common
 }
 
-func (d *Div) getElements() *[]*Element { return &d.elements }
-func (d *Div) getClasses() *[]string    { return &d.classes }
-func (d *Div) Add(e Element)            { add(d, e) }
-func (d *Div) getTag() string           { return "div" }
-func (d *Div) Render() string           { return render(d) }
-func (d *Div) AddClass(s string)        { addClass(d, s) }
+func (d *Div) AddClass(s string) Element              { d.cmn.addClass(s); return d }
+func (d *Div) Add(e Element)                          { d.cmn.addElement(e) }
+func (d *Div) SetId(s string)                         { d.cmn.id = s }
+func (d *Div) GetId() string                          { return d.cmn.id }
+func (d *Div) SetAttribute(name string, value string) { d.cmn.setAttribute(name, value) }
+func (d *Div) SetOnClick(value string)                { d.cmn.setAttribute("onclick", value) }
+func (d *Div) SetValue(value string)                  { d.cmn.setAttribute("value", value) }
+func (d *Div) Render() string                         { return d.cmn.render("div") }

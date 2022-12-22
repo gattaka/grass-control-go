@@ -6,26 +6,30 @@ type TableColumn[T any] struct {
 }
 
 type Table[T any] struct {
+	cmn     common
 	Items   []*T
 	Columns []TableColumn[T]
-	classes []string
 }
 
-func (d *Table[T]) Render() string {
+func (t *Table[T]) AddClass(s string) Element              { t.cmn.addClass(s); return t }
+func (t *Table[T]) SetId(s string)                         { t.cmn.id = s }
+func (t *Table[T]) GetId() string                          { return t.cmn.id }
+func (t *Table[T]) SetAttribute(name string, value string) { t.cmn.setAttribute(name, value) }
+func (t *Table[T]) SetValue(value string)                  { t.cmn.setAttribute("value", value) }
+func (t *Table[T]) Render() string {
 	result := "<div class='table-div'><div class='table-head-div'><div class='table-head-tr-div'>"
-	for _, column := range d.Columns {
+	for _, column := range t.Columns {
 		result += "<div class='table-head-td-div'>" + column.Name + "</div>"
 	}
 	result += "</div></div><div class='table-body-div'>"
-	for _, item := range d.Items {
+	for _, item := range t.Items {
 		result += "<div class='table-body-tr-div'>"
-		for _, column := range d.Columns {
+		for _, column := range t.Columns {
 			result += "<div class='table-body-td-div'>" + column.Renderer(*item) + "</div>"
 		}
 		result += "</div>"
 	}
 	result += "</div></div>"
-	return result
+	t.cmn.content = result
+	return t.cmn.render("table")
 }
-func (d *Table[T]) getClasses() *[]string { return &d.classes }
-func (d *Table[T]) AddClass(s string)     { addClass(d, s) }

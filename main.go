@@ -23,8 +23,14 @@ import _ "embed"
 //go:embed resources/styles.css
 var styles string
 
+//go:embed resources/scripts.js
+var scripts string
+
 //go:embed resources/favicon.png
 var favicon string
+
+//go:embed resources/icons.png
+var icons string
 
 const vlcPort = 8080
 const vlcPass = "vlcgatt"
@@ -69,7 +75,9 @@ func main() {
 	})
 
 	http.HandleFunc("/resources/styles.css", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, styles) })
+	http.HandleFunc("/resources/scripts.js", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, scripts) })
 	http.HandleFunc("/resources/favicon.png", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, favicon) })
+	http.HandleFunc("/resources/icons.png", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, icons) })
 
 	prepareURLForVLC := func(value string) string {
 		// https://go.dev/play/p/pOfrn-Wsq5
@@ -89,6 +97,12 @@ func main() {
 	http.HandleFunc("/next", func(w http.ResponseWriter, r *http.Request) { myVLC.Next() })
 	http.HandleFunc("/prev", func(w http.ResponseWriter, r *http.Request) { myVLC.Previous() })
 	http.HandleFunc("/stop", func(w http.ResponseWriter, r *http.Request) { myVLC.Stop() })
+	http.HandleFunc("/shuffle", func(w http.ResponseWriter, r *http.Request) {
+		// chyba v názvu funkce, ve skutečnosti volá Random (shuffle)
+		myVLC.ToggleLoop()
+		io.WriteString(w, "TEST1111")
+	})
+	http.HandleFunc("/loop", func(w http.ResponseWriter, r *http.Request) { myVLC.ToggleRepeat() })
 	http.HandleFunc("/add", func(w http.ResponseWriter, r *http.Request) {
 		myVLC.Add(prepareURLForVLC(r.URL.Query().Get("id")))
 	})
@@ -99,7 +113,10 @@ func main() {
 		initIndexer(&indexer)
 		ui.ConstructPage(indexer.GetAllItems(), w, false, "/")
 	})
-	http.HandleFunc("/quit", func(w http.ResponseWriter, r *http.Request) { os.Exit(0) })
+	http.HandleFunc("/quit", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "Aplikace byla ukončena")
+		os.Exit(0)
+	})
 
 	log.Fatal(http.ListenAndServe(":8888", nil))
 }

@@ -1,33 +1,26 @@
 package ui
 
 type Html struct {
-	elements []*Element
-	Css      string
-	Headers  []string
-	classes  []string
+	html    common
+	body    common
+	Css     string
+	Headers []string
 }
 
-func (d *Html) getElements() *[]*Element { return &d.elements }
-func (d *Html) getClasses() *[]string    { return &d.classes }
-func (d *Html) Add(e Element)            { add(d, e) }
-func (d *Html) getTag() string           { return "html" }
-func (d *Html) Render() string {
-	result := "<html><head>"
-	if len(d.Headers) > 0 {
-		for _, header := range d.Headers {
+func (h *Html) Add(e Element)                          { h.html.addElement(e) }
+func (h *Html) SetAttribute(name string, value string) { h.html.setAttribute(name, value) }
+func (h *Html) Render() string {
+	result := "<head>"
+	if len(h.Headers) > 0 {
+		for _, header := range h.Headers {
 			result += header
 		}
 	}
 	result += "<style>"
-	result += d.Css
+	result += h.Css
 	result += "</style>"
-	result += "</head><body>"
-	if d.elements != nil {
-		for _, s := range *d.getElements() {
-			result += (*s).Render()
-		}
-	}
-	result += "</body></html>"
-	return result
+	result += "</head>"
+	h.body.content = result
+	h.html.content = h.body.render("body")
+	return h.html.render("html")
 }
-func (d *Html) AddClass(s string) { addClass(d, s) }
