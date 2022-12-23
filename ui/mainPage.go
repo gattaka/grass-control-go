@@ -50,12 +50,12 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 	mainDiv.Add(&controlsDiv)
 
 	controlsDiv.Add(NewButton("&#10006", ajax("clear")))
-	controlsDiv.Add(NewButton("", ajax("pause")).AddClass("pause-btn"))
-	controlsDiv.Add(NewButton("", ajax("prev")).AddClass("prev-btn"))
-	controlsDiv.Add(NewButton("", ajax("stop")).AddClass("stop-btn"))
-	controlsDiv.Add(NewButton("", ajax("next")).AddClass("next-btn"))
-	controlsDiv.Add(NewButton("", ajax("loop")).AddClass("loop-btn"))
-	controlsDiv.Add(NewButton("", ajax("shuffle")).AddClass("shuffle-btn"))
+	controlsDiv.Add(NewButton("", ajax("pause")).SetId("pause-btn"))
+	controlsDiv.Add(NewButton("", ajax("prev")).SetId("prev-btn"))
+	controlsDiv.Add(NewButton("", ajax("stop")).SetId("stop-btn"))
+	controlsDiv.Add(NewButton("", ajax("next")).SetId("next-btn"))
+	controlsDiv.Add(NewButton("", ajax("loop")).SetId("loop-btn"))
+	controlsDiv.Add(NewButton("", ajax("shuffle")).SetId("shuffle-btn"))
 
 	// Výpis aktuálního umístění
 	locationDiv := Div{}

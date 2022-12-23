@@ -5,13 +5,12 @@ import "strings"
 type Element interface {
 	Render() string
 	AddClass(s string) Element
-	SetId(s string)
+	SetId(s string) Element
 	GetId() string
-	SetAttribute(name string, value string)
+	SetAttribute(name string, value string) Element
 }
 
 type common struct {
-	id          string
 	classes     []string
 	attributes  map[string]string
 	subElements []*Element
@@ -52,6 +51,14 @@ func (c *common) setAttribute(key string, val string) {
 	(*attributes)[key] = val
 }
 
+func (c *common) getId() string {
+	return c.getAttribute("id")
+}
+
+func (c *common) setId(s string) {
+	c.setAttribute("id", s)
+}
+
 func (c *common) render(tag string) string {
 	result := ""
 	result += "<" + tag
@@ -60,6 +67,9 @@ func (c *common) render(tag string) string {
 	}
 	if c.attributes != nil && len(c.attributes) > 0 {
 		for key, val := range c.attributes {
+			if val == "" {
+				continue
+			}
 			result += " " + key + "=\"" + val + "\" "
 		}
 	}

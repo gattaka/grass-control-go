@@ -11,11 +11,14 @@ type Table[T any] struct {
 	Columns []TableColumn[T]
 }
 
-func (t *Table[T]) AddClass(s string) Element              { t.cmn.addClass(s); return t }
-func (t *Table[T]) SetId(s string)                         { t.cmn.id = s }
-func (t *Table[T]) GetId() string                          { return t.cmn.id }
-func (t *Table[T]) SetAttribute(name string, value string) { t.cmn.setAttribute(name, value) }
-func (t *Table[T]) SetValue(value string)                  { t.cmn.setAttribute("value", value) }
+func (t *Table[T]) AddClass(s string) Element { t.cmn.addClass(s); return t }
+func (t *Table[T]) SetId(s string) Element    { t.cmn.setId(s); return t }
+func (t *Table[T]) GetId() string             { return t.cmn.getId() }
+func (t *Table[T]) SetAttribute(name string, value string) Element {
+	t.cmn.setAttribute(name, value)
+	return t
+}
+func (t *Table[T]) SetValue(value string) { t.cmn.setAttribute("value", value) }
 func (t *Table[T]) Render() string {
 	result := "<div class='table-div'><div class='table-head-div'><div class='table-head-tr-div'>"
 	for _, column := range t.Columns {

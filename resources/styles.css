@@ -117,34 +117,34 @@ input[type="button"] .selected {
     justify-content: center;
 }
 
-.pause-btn, .play-btn, .prev-btn, .stop-btn, .next-btn, .loop-btn, .shuffle-btn {
+#pause-btn, #play-btn, #prev-btn, #stop-btn, #next-btn, #loop-btn, #shuffle-btn {
     background-image: url(/resources/icons.png);
     background-size: 128px;
 }
 
-.pause-btn {
+#pause-btn {
     background-position: calc(-2 * 32px - 1px) -1px;
     margin-left: var(--spacing);
 }
 
-.prev-btn {
+#prev-btn {
     background-position: -1px calc(-32px - 1px);
 }
 
-.stop-btn {
+#stop-btn {
     background-position: calc(-3 * 32px - 1px) -1px;
 }
 
-.next-btn {
+#next-btn {
     background-position: calc(-32px - 1px) calc(-32px - 1px);
 }
 
-.loop-btn {
+#loop-btn {
     background-position: calc(-32px - 1px) calc(-3 * 32px - 1px);
     margin-left: var(--spacing);
 }
 
-.shuffle-btn {
+#shuffle-btn {
     background-position: calc(-1px) calc(-3 * 32px - 1px);
 }
 
