@@ -3,6 +3,12 @@
     --scrollbar-width: 10px;
     --menu-height: 30px;
     --menu-color: hsl(0deg 0% 10%);
+    --checked-border-color: #03a9f4;
+    --checked-background-color: aliceblue;
+    --checked-hover-background-color: lightblue;
+    --unchecked-border-color: darkgray;
+    --unchecked-background-color: #f0f0f0;
+    --unchecked-hover-background-color: lightgray;
 }
 
 html, input, a {
@@ -83,19 +89,33 @@ input[type="text"] {
 
 input[type="button"] {
     cursor: pointer;
-    background-color: #f0f0f0;
+    background-color: var(--unchecked-background-color);
+}
+
+input[type="button"].checked {
+    cursor: pointer;
+    background-color: var(--checked-background-color);
 }
 
 input[type="button"]:hover {
-    background-color: lightgray;
+    background-color: var(--unchecked-hover-background-color) !important;
+}
+
+input[type="button"].checked:hover {
+    background-color: var(--checked-hover-background-color) !important;
 }
 
 input[type="text"], input[type="button"] {
-    border: 1px solid darkgray;
+    border: 1px solid var(--unchecked-border-color);
     border-radius: 5px;
 }
 
-input[type="button"] .selected {
+input[type="text"].checked, input[type="button"].checked {
+    border: 1px solid var(--checked-border-color);
+    border-radius: 5px;
+}
+
+input[type="button"].selected {
     border: 1px solid #2196f3;
 }
 
@@ -161,7 +181,7 @@ input[type="button"] .selected {
 }
 
 .table-div {
-    border: 1px solid darkgray;
+    border: 1px solid var(--unchecked-border-color);
     border-radius: 5px;
     display: flex;
     flex-direction: column;
@@ -170,12 +190,12 @@ input[type="button"] .selected {
 
 .table-head-tr-div {
     background: #eee;
-    border-bottom: 1px solid darkgray;
+    border-bottom: 1px solid var(--unchecked-border-color);
     padding-right: var(--scrollbar-width);
 }
 
 .table-head-td-div, .table-body-td-div {
-    border-left: 1px solid darkgray;
+    border-left: 1px solid var(--unchecked-border-color);
 }
 
 .table-head-td-div:first-child, .table-body-td-div:first-child {

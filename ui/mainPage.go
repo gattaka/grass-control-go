@@ -7,20 +7,12 @@ import (
 	"strings"
 )
 
-func ajaxCallback(url string, callback string) string {
-	call := "ajaxCall('" + url + "'"
-	if callback != "" {
-		call += "," + callback
-	}
-	call += ")"
+func ajax(url string) string {
+	call := "ajaxCall('" + url + "')"
 	return call
 }
 
-func ajax(url string) string {
-	return ajaxCallback(url, "")
-}
-
-func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool, query string) {
+func ConstructPage(items []*indexer.Item, initJSModifiers string, w http.ResponseWriter, fromSearch bool, query string) {
 	html := Html{}
 	html.Headers = []string{
 		"<link rel=\"stylesheet\" href=\"resources/styles.css\"/>",
@@ -101,6 +93,8 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 		return render
 	}}
 	mainDiv.Add(&table)
+
+	html.Add(NewScript("applyJSModifiers(\"" + initJSModifiers + "\")"))
 
 	result := html.Render()
 	io.WriteString(w, result)

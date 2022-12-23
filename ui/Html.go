@@ -16,11 +16,13 @@ func (h *Html) Render() string {
 			result += header
 		}
 	}
-	result += "<style>"
-	result += h.Css
-	result += "</style>"
+	if h.Css != "" {
+		result += "<style>"
+		result += h.Css
+		result += "</style>"
+	}
 	result += "</head>"
-	h.body.content = result
-	h.html.content = h.body.render("body")
+	h.html.content = result
+	h.html.content += h.body.render("body")
 	return h.html.render("html")
 }
