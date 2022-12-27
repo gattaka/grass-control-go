@@ -191,6 +191,19 @@ func main() {
 		// Loop
 		operations += ternar(func() bool { return result.Loop }, "addClass", "removeClass") + ",loop-btn,checked;"
 		// Current song
+		artist := result.Information.Category.Meta.Artist
+		title := result.Information.Category.Meta.Title
+		album := result.Information.Category.Meta.Album
+		if artist != "" {
+			operations += "songInfo," + artist
+			if title != "" {
+				operations += ": " + title
+			}
+			if album != "" {
+				operations += " (" + album + ")"
+			}
+		}
+
 		io.WriteString(w, operations)
 	})
 

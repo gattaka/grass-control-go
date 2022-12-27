@@ -23,7 +23,10 @@ function applyJSModifiers(modifiers) {
                 document.getElementById(vars[1]).classList.remove(vars[2]);
             } else if (vars[0] == "showError") {
                 let infoDiv = document.getElementById("info-div");
-                infoDiv.innerText =  vars[1]
+                infoDiv.innerText = vars[1]
+            } else if (vars[0] == "songInfo") {
+                let infoDiv = document.getElementById("current-song-div");
+                infoDiv.innerText = vars[1]
             }
         }
     }

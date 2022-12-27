@@ -112,6 +112,12 @@ body {
     background: #555;
 }
 
+#current-song-div {
+    font-weight: bolder;
+    font-size: 20px;
+    margin-left: var(--spacing);
+}
+
 h1 {
     margin: 0 0 calc(3 * var(--spacing)) 0;
     padding: 0;

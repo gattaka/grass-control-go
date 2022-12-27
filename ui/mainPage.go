@@ -63,7 +63,7 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 	controlsDiv.Add(NewButton("", prepAjax("shuffle")).SetId("shuffle-btn"))
 
 	currentSongDiv := Div{}
-	controlsDiv.SetId("current-song-div")
+	currentSongDiv.SetId("current-song-div")
 	controlsDiv.Add(&currentSongDiv)
 
 	// Výpis aktuálního umístění
