@@ -17,7 +17,7 @@ func prepAjaxWithParam(url string, paramToEncode string) string {
 }
 
 func prepDirNavigate(urlToEncode string) string {
-	return "window.location.href='?dir=" + utils.EncodeURL(urlToEncode) + "'"
+	return "window.location.href='/?dir=" + utils.EncodeURL(urlToEncode) + "'"
 }
 
 func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool, query string) {
