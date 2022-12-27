@@ -7,8 +7,8 @@ type Html struct {
 	Headers []string
 }
 
-func (h *Html) Add(e Element)                          { h.html.addElement(e) }
-func (h *Html) SetAttribute(name string, value string) { h.html.setAttribute(name, value) }
+func (h *Html) Add(e Element)                          { h.body.addElement(e) }
+func (h *Html) SetAttribute(name string, value string) { h.body.setAttribute(name, value) }
 func (h *Html) Render() string {
 	result := "<head>"
 	if len(h.Headers) > 0 {

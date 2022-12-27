@@ -13,5 +13,5 @@ func (d *Div) SetAttribute(name string, value string) Element {
 	return d
 }
 func (d *Div) SetOnClick(value string) { d.cmn.setAttribute("onclick", value) }
-func (d *Div) SetValue(value string)   { d.cmn.setAttribute("value", value) }
+func (d *Div) SetValue(value string)   { d.cmn.content = value }
 func (d *Div) Render() string          { return d.cmn.render("div") }

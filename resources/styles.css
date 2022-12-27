@@ -20,6 +20,42 @@ body {
     padding: 0;
 }
 
+@keyframes info-div-show {
+    from {
+        top: calc(-1 * var(--menu-height));
+    }
+    to {
+        top: 0;
+    }
+}
+
+#info-div {
+    position: fixed;
+    width: 100%;
+    height: var(--menu-height);
+    top: calc(-1 * var(--menu-height));
+    text-align: center;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+.info-div-show {
+    animation-name: info-div-show;
+    animation-duration: 1s;
+    animation-timing-function: cubic-bezier(.22, 1.42, 0, .98);
+    animation-fill-mode: forwards;
+}
+
+.error {
+    background: darkred;
+    color: #ffc107;
+}
+
+.info {
+    background: #2196f3;
+    color: #e9f5ff;
+}
+
 .menu-div {
     background: hsl(0deg 0% 80%);
     border-bottom: 1px solid hsl(0deg 0% 64%);

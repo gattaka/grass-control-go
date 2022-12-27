@@ -5,10 +5,10 @@ import (
 	vlcctrl "github.com/CedArctic/go-vlc-ctrl"
 	"grass-control-go/indexer"
 	"grass-control-go/ui"
+	"grass-control-go/utils"
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 )
@@ -126,18 +126,6 @@ func ternar(condition func() bool, trueResult string, falseResult string) string
 	}
 }
 
-func refreshByStatus(myVLC vlcctrl.VLC) string {
-	var result vlcJson
-	response, _ := myVLC.RequestMaker("/requests/status.json")
-	json.Unmarshal([]byte(response), &result)
-	operations := ""
-	// Shuffle
-	operations += ternar(func() bool { return result.Random }, "addClass", "removeClass") + ",shuffle-btn,checked;"
-	// Loop
-	operations += ternar(func() bool { return result.Loop }, "addClass", "removeClass") + ",loop-btn,checked;"
-	return operations
-}
-
 func main() {
 
 	indexer := indexer.Indexer{}
@@ -150,12 +138,11 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		initJSModifiers := refreshByStatus(myVLC)
 		if r.URL.Query().Has("search") {
 			// hledá se cokoliv dle názvu
 			searchQuery := r.URL.Query().Get("search")
 			if searchQuery != "" {
-				ui.ConstructPage(indexer.FindByString(searchQuery), initJSModifiers, w, true, searchQuery)
+				ui.ConstructPage(indexer.FindByString(searchQuery), w, true, searchQuery)
 				return
 			}
 		} else if r.URL.Query().Has("dir") {
@@ -164,13 +151,13 @@ func main() {
 			path := strings.Trim(dirQuery, "/")
 			if len(path) > 0 {
 				parts := strings.Split(path, "/")
-				ui.ConstructPage(indexer.FindByPath(parts), initJSModifiers, w, false, dirQuery)
+				ui.ConstructPage(indexer.FindByPath(parts), w, false, dirQuery)
 				return
 			}
 		}
 
 		// výchozí pohled
-		ui.ConstructPage(indexer.GetAllItems(), initJSModifiers, w, false, "/")
+		ui.ConstructPage(indexer.GetAllItems(), w, false, "/")
 	})
 
 	http.HandleFunc("/resources/styles.css", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, styles) })
@@ -178,43 +165,52 @@ func main() {
 	http.HandleFunc("/resources/favicon.png", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, favicon) })
 	http.HandleFunc("/resources/icons.png", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, icons) })
 
-	prepareURLForVLC := func(value string) string {
-		// https://go.dev/play/p/pOfrn-Wsq5
-		url := &url.URL{Path: "file:///" + playerRoot + value}
-		// URL předsadí před sebe './'
-		encoded := url.String()
-		if encoded[:2] == "./" {
-			encoded = encoded[2:]
+	ret := func(w http.ResponseWriter, err error) {
+		if err != nil {
+			operations := "showError," + err.Error()
+			operations += ";removeClass,info-div,info;"
+			operations += ";removeClass,info-div,info-div-show;"
+			operations += ";removeClass,info-div,info-div-hide;"
+			operations += ";addClass,info-div,error;"
+			operations += ";addClass,info-div,info-div-show;"
+			io.WriteString(w, operations)
 		}
-		// VLC má vadu a nebere URL mezery jako '+', zvládá jen '%20'
-		//encoded := url.QueryEscape("file:///D:/Hudba/" + value)
-		return encoded
 	}
 
-	http.HandleFunc("/clear", func(w http.ResponseWriter, r *http.Request) { myVLC.EmptyPlaylist() })
-	http.HandleFunc("/pause", func(w http.ResponseWriter, r *http.Request) { myVLC.Pause() })
-	http.HandleFunc("/next", func(w http.ResponseWriter, r *http.Request) { myVLC.Next() })
-	http.HandleFunc("/prev", func(w http.ResponseWriter, r *http.Request) { myVLC.Previous() })
-	http.HandleFunc("/stop", func(w http.ResponseWriter, r *http.Request) { myVLC.Stop() })
-	http.HandleFunc("/shuffle", func(w http.ResponseWriter, r *http.Request) {
-		// chyba v názvu funkce, ve skutečnosti volá Random (shuffle)
-		myVLC.ToggleLoop()
-		io.WriteString(w, refreshByStatus(myVLC))
+	prepURL := func(path string) string {
+		return "file:///" + utils.EncodeURL(playerRoot+path)
+	}
+
+	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
+		var result vlcJson
+		response, _ := myVLC.RequestMaker("/requests/status.json")
+		json.Unmarshal([]byte(response), &result)
+		operations := ""
+		// Shuffle
+		operations += ternar(func() bool { return result.Random }, "addClass", "removeClass") + ",shuffle-btn,checked;"
+		// Loop
+		operations += ternar(func() bool { return result.Loop }, "addClass", "removeClass") + ",loop-btn,checked;"
+		// Current song
+		io.WriteString(w, operations)
 	})
-	http.HandleFunc("/loop", func(w http.ResponseWriter, r *http.Request) {
-		myVLC.ToggleRepeat()
-		io.WriteString(w, refreshByStatus(myVLC))
-	})
+
+	http.HandleFunc("/clear", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.EmptyPlaylist()) })
+	http.HandleFunc("/pause", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.Pause()) })
+	http.HandleFunc("/next", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.Next()) })
+	http.HandleFunc("/prev", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.Previous()) })
+	http.HandleFunc("/stop", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.Stop()) })
+	// chyba v názvu funkce, ve skutečnosti volá Random (shuffle)
+	http.HandleFunc("/shuffle", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.ToggleLoop()) })
+	http.HandleFunc("/loop", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.ToggleRepeat()) })
 	http.HandleFunc("/add", func(w http.ResponseWriter, r *http.Request) {
-		myVLC.Add(prepareURLForVLC(r.URL.Query().Get("id")))
+		ret(w, myVLC.Add(prepURL(r.URL.Query().Get("id"))))
 	})
 	http.HandleFunc("/addAndPlay", func(w http.ResponseWriter, r *http.Request) {
-		myVLC.AddStart(prepareURLForVLC(r.URL.Query().Get("id")))
+		ret(w, myVLC.AddStart(prepURL(r.URL.Query().Get("id"))))
 	})
 	http.HandleFunc("/reindex", func(w http.ResponseWriter, r *http.Request) {
 		initIndexer(&indexer)
-		initJSModifiers := refreshByStatus(myVLC)
-		ui.ConstructPage(indexer.GetAllItems(), initJSModifiers, w, false, "/")
+		ui.ConstructPage(indexer.GetAllItems(), w, false, "/")
 	})
 	http.HandleFunc("/quit", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "Aplikace byla ukončena")

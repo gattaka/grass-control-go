@@ -59,18 +59,24 @@ func (c *common) setId(s string) {
 	c.setAttribute("id", s)
 }
 
+func escape(s string) string {
+	result := strings.ReplaceAll(s, "\\", "\\\\")
+	result = strings.ReplaceAll(result, "\"", "\\\"")
+	return result
+}
+
 func (c *common) render(tag string) string {
 	result := ""
 	result += "<" + tag
 	if c.classes != nil && len(c.classes) > 0 {
-		result += " class=\"" + strings.Join(c.classes, " ") + "\" "
+		result += " class=\"" + escape(strings.Join(c.classes, " ")) + "\" "
 	}
 	if c.attributes != nil && len(c.attributes) > 0 {
 		for key, val := range c.attributes {
 			if val == "" {
 				continue
 			}
-			result += " " + key + "=\"" + val + "\" "
+			result += " " + key + "=\"" + escape(val) + "\" "
 		}
 	}
 	result += ">"

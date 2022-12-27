@@ -21,7 +21,14 @@ function applyJSModifiers(modifiers) {
                 document.getElementById(vars[1]).classList.add(vars[2]);
             } else if (vars[0] == "removeClass") {
                 document.getElementById(vars[1]).classList.remove(vars[2]);
+            } else if (vars[0] == "showError") {
+                let infoDiv = document.getElementById("info-div");
+                infoDiv.innerText =  vars[1]
             }
         }
     }
 }
+
+setInterval(() => {
+    ajaxCall("/status")
+}, 500);

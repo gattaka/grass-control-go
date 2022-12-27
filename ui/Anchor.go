@@ -11,6 +11,13 @@ func NewAnchor(value string, link string) *Anchor {
 	return &a
 }
 
+func NewAnchorJS(value string, onClickJS string) *Anchor {
+	a := Anchor{}
+	a.SetValue(value)
+	a.SetOnClick(onClickJS)
+	return &a
+}
+
 func (a *Anchor) AddClass(s string) Element { a.cmn.addClass(s); return a }
 func (a *Anchor) SetId(s string) Element    { a.cmn.setId(s); return a }
 func (a *Anchor) GetId() string             { return a.cmn.getId() }
