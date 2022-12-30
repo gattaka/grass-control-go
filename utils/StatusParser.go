@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"log"
 )
 
 type vlcJson struct {
@@ -81,6 +82,15 @@ type vlcJson struct {
 	Equalizer     []interface{} `json:"equalizer"`
 }
 
+type GrassControlOperationJson struct {
+	Name   string   `json:"name"`
+	Params []string `json:"params"`
+}
+
+type GrassControlJson struct {
+	Operations []GrassControlOperationJson `json:"operations"`
+}
+
 func addOrRemoveClass(add bool) string {
 	if add {
 		return "addClass"
@@ -89,28 +99,40 @@ func addOrRemoveClass(add bool) string {
 	}
 }
 
-func processShuffle(result vlcJson) string {
-	return addOrRemoveClass(result.Random) + ",shuffle-btn,checked;"
+func processShuffle(result vlcJson, json *GrassControlJson) {
+	json.Operations = append(json.Operations, GrassControlOperationJson{
+		addOrRemoveClass(result.Random),
+		[]string{"shuffle-btn", "checked"},
+	})
 }
 
-func processLoop(result vlcJson) string {
-	return addOrRemoveClass(result.Loop) + ",loop-btn,checked;"
+func processLoop(result vlcJson, json *GrassControlJson) {
+	json.Operations = append(json.Operations, GrassControlOperationJson{
+		addOrRemoveClass(result.Loop),
+		[]string{"loop-btn", "checked"},
+	})
 }
 
-func processPausedPlaying(result vlcJson) string {
+func processPausedPlaying(result vlcJson, json *GrassControlJson) {
 	isPlaying := result.State == "playing"
-	oper := addOrRemoveClass(isPlaying) + ",play-pause-btn,pause-btn;"
-	return oper + addOrRemoveClass(!isPlaying) + ",play-pause-btn,play-btn;"
+	json.Operations = append(json.Operations, GrassControlOperationJson{
+		addOrRemoveClass(isPlaying),
+		[]string{"play-pause-btn", "pause-btn"},
+	})
+	json.Operations = append(json.Operations, GrassControlOperationJson{
+		addOrRemoveClass(!isPlaying),
+		[]string{"play-pause-btn", "play-btn"},
+	})
 }
 
-func processCurrentSong(result vlcJson) string {
+func processCurrentSong(result vlcJson, json *GrassControlJson) {
 	artist := result.Information.Category.Meta.Artist
 	title := result.Information.Category.Meta.Title
 	album := result.Information.Category.Meta.Album
 	filename := result.Information.Category.Meta.Filename
 	value := ""
 	if artist != "" {
-		value += "songInfo," + artist
+		value += artist
 		if title != "" {
 			value += ": " + title
 		}
@@ -118,20 +140,27 @@ func processCurrentSong(result vlcJson) string {
 			value += " (" + album + ")"
 		}
 	} else if filename != "" {
-		value += "songInfo," + filename
+		value += filename
 	}
-	return value
+	json.Operations = append(json.Operations, GrassControlOperationJson{
+		"songInfo",
+		[]string{value},
+	})
 }
 
 func ProcessOperations(vlcResponse string) string {
 	var result vlcJson
 	json.Unmarshal([]byte(vlcResponse), &result)
-	operations := ""
+	operations := GrassControlJson{}
 
-	operations += processShuffle(result)
-	operations += processLoop(result)
-	operations += processPausedPlaying(result)
-	operations += processCurrentSong(result)
+	processShuffle(result, &operations)
+	processLoop(result, &operations)
+	processPausedPlaying(result, &operations)
+	processCurrentSong(result, &operations)
 
-	return operations
+	bytes, err := json.Marshal(operations)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(bytes)
 }

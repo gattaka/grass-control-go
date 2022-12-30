@@ -3,31 +3,33 @@ function ajaxCall(url) {
     xhttp.onreadystatechange = () => {
         if (xhttp.readyState === 4 && xhttp.response !== undefined) {
             let modifiers = xhttp.response;
-            applyJSModifiers(modifiers);
+            const obj = JSON.parse(modifiers);
+            applyJSModifiers(obj.operations);
         }
     }
     xhttp.open('GET', url, true);
     xhttp.send();
 }
 
-function applyJSModifiers(modifiers) {
+function applyJSModifiers(operations) {
     // šel by použít rovnou eval, ale to je security zlo
-    let modifiersArr = modifiers.split(";")
-    for (var i = 0; i < modifiersArr.length; i++) {
-        let modifier = modifiersArr[i];
-        let vars = modifier.split(",")
-        if (vars.length > 1) {
-            if (vars[0] == "addClass") {
-                document.getElementById(vars[1]).classList.add(vars[2]);
-            } else if (vars[0] == "removeClass") {
-                document.getElementById(vars[1]).classList.remove(vars[2]);
-            } else if (vars[0] == "showError") {
-                let infoDiv = document.getElementById("info-div");
-                infoDiv.innerText = vars[1]
-            } else if (vars[0] == "songInfo") {
-                let infoDiv = document.getElementById("current-song-div");
-                infoDiv.innerText = vars[1]
-            }
+    for (var i = 0; i < operations.length; i++) {
+        let operation = operations[i];
+        let name = operation.name;
+        let params = operation.params;
+        switch (name) {
+            case "addClass":
+                document.getElementById(params[0]).classList.add(params[1]);
+                break;
+            case "removeClass":
+                document.getElementById(params[0]).classList.remove(params[1]);
+                break;
+            case "showError":
+                document.getElementById("info-div").innerText = params[0];
+                break;
+            case "songInfo":
+                let infoDiv = document.getElementById("current-song-div").innerText = params[0]
+                break;
         }
     }
 }
