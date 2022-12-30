@@ -55,7 +55,7 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 	mainDiv.Add(&controlsDiv)
 
 	controlsDiv.Add(NewButton("&#10006", prepAjax("clear")))
-	controlsDiv.Add(NewButton("", prepAjax("pause")).SetId("pause-btn"))
+	controlsDiv.Add(NewButton("", prepAjax("pause")).SetId("play-pause-btn"))
 	controlsDiv.Add(NewButton("", prepAjax("prev")).SetId("prev-btn"))
 	controlsDiv.Add(NewButton("", prepAjax("stop")).SetId("stop-btn"))
 	controlsDiv.Add(NewButton("", prepAjax("next")).SetId("next-btn"))

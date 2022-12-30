@@ -190,10 +190,17 @@ func main() {
 		operations += ternar(func() bool { return result.Random }, "addClass", "removeClass") + ",shuffle-btn,checked;"
 		// Loop
 		operations += ternar(func() bool { return result.Loop }, "addClass", "removeClass") + ",loop-btn,checked;"
+		// Paused/Playing
+		isPlaying := result.State == "playing"
+		pauseClassOper := ternar(func() bool { return isPlaying }, "addClass", "removeClass")
+		playClassOper := ternar(func() bool { return !isPlaying }, "addClass", "removeClass")
+		operations += pauseClassOper + ",play-pause-btn,pause-btn;"
+		operations += playClassOper + ",play-pause-btn,play-btn;"
 		// Current song
 		artist := result.Information.Category.Meta.Artist
 		title := result.Information.Category.Meta.Title
 		album := result.Information.Category.Meta.Album
+		filename := result.Information.Category.Meta.Filename
 		if artist != "" {
 			operations += "songInfo," + artist
 			if title != "" {
@@ -202,6 +209,8 @@ func main() {
 			if album != "" {
 				operations += " (" + album + ")"
 			}
+		} else if filename != "" {
+			operations += "songInfo," + filename
 		}
 
 		io.WriteString(w, operations)

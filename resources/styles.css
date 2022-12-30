@@ -179,14 +179,21 @@ input[type="button"].selected {
     justify-content: center;
 }
 
-#pause-btn, #play-btn, #prev-btn, #stop-btn, #next-btn, #loop-btn, #shuffle-btn {
+#play-pause-btn, #prev-btn, #stop-btn, #next-btn, #loop-btn, #shuffle-btn {
     background-image: url(/resources/icons.png);
     background-size: 128px;
 }
 
-#pause-btn {
-    background-position: calc(-2 * 32px - 1px) -1px;
+#play-pause-btn {
     margin-left: var(--spacing);
+}
+
+.pause-btn {
+    background-position: -1px -1px;
+}
+
+.play-btn {
+    background-position: calc(-2 * 16px - 1px) -1px;
 }
 
 #prev-btn {
