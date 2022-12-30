@@ -65,7 +65,6 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 	controlsDiv.AddClass("controls-div")
 	mainDiv.Add(&controlsDiv)
 
-	controlsDiv.Add(NewButton("&#10006", prepAjax("clear")))
 	controlsDiv.Add(NewButton("", prepAjax("pause")).SetId("play-pause-btn"))
 	controlsDiv.Add(NewButton("", prepAjax("prev")).SetId("prev-btn"))
 	controlsDiv.Add(NewButton("", prepAjax("stop")).SetId("stop-btn"))
@@ -81,6 +80,8 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 	locationDiv := Div{}
 	locationDiv.AddClass("location-div")
 	mainDiv.Add(&locationDiv)
+
+	locationDiv.Add(NewButton("&#10006", prepAjax("clear")))
 
 	tableBtnsParam := ""
 	if fromSearch {
