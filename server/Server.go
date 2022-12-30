@@ -21,16 +21,16 @@ type Resources struct {
 
 func StartServer(myVLC vlcctrl.VLC, indexer indexer.Indexer, resources Resources) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Has("search") {
+		if r.URL.Query().Has(ui.SearchParam) {
 			// hledá se cokoliv dle názvu
-			searchQuery := r.URL.Query().Get("search")
+			searchQuery := r.URL.Query().Get(ui.SearchParam)
 			if searchQuery != "" {
 				ui.ConstructPage(indexer.FindByString(searchQuery), w, true, searchQuery)
 				return
 			}
-		} else if r.URL.Query().Has("dir") {
+		} else if r.URL.Query().Has(ui.DirParam) {
 			// hledá se přímo dle adresáře
-			dirQuery := r.URL.Query().Get("dir")
+			dirQuery := r.URL.Query().Get(ui.DirParam)
 			path := strings.Trim(dirQuery, "/")
 			if len(path) > 0 {
 				parts := strings.Split(path, "/")
@@ -79,13 +79,31 @@ func StartServer(myVLC vlcctrl.VLC, indexer indexer.Indexer, resources Resources
 	http.HandleFunc("/shuffle", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.ToggleLoop()) })
 	http.HandleFunc("/loop", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.ToggleRepeat()) })
 
-	http.HandleFunc(ui.AddEndpoint, func(w http.ResponseWriter, r *http.Request) {
-		ret(w, myVLC.Add(prepURL(r.URL.Query().Get("id"))))
-	})
+	addOrAddAndPlay := func(w http.ResponseWriter, r *http.Request, andPlay bool) {
+		query := r.URL.Query()
+		if query.Has(ui.IdParam) {
+			target := prepURL(query.Get(ui.IdParam))
+			if andPlay {
+				ret(w, myVLC.AddStart(target))
+			} else {
+				ret(w, myVLC.Add(target))
+			}
+		} else if query.Has(ui.SearchParam) {
+			searchQuery := query.Get(ui.SearchParam)
+			items := indexer.FindByString(searchQuery)
+			for _, item := range items {
+				target := prepURL(item.GetPath())
+				if andPlay {
+					ret(w, myVLC.AddStart(target))
+				} else {
+					ret(w, myVLC.Add(target))
+				}
+			}
+		}
+	}
 
-	http.HandleFunc(ui.AddAndPlayEndpoint, func(w http.ResponseWriter, r *http.Request) {
-		ret(w, myVLC.AddStart(prepURL(r.URL.Query().Get("id"))))
-	})
+	http.HandleFunc(ui.AddEndpoint, func(w http.ResponseWriter, r *http.Request) { addOrAddAndPlay(w, r, false) })
+	http.HandleFunc(ui.AddAndPlayEndpoint, func(w http.ResponseWriter, r *http.Request) { addOrAddAndPlay(w, r, true) })
 
 	http.HandleFunc("/reindex", func(w http.ResponseWriter, r *http.Request) {
 		indexer.Reindex()
