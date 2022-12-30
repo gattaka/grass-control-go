@@ -7,18 +7,20 @@ import (
 )
 
 type Indexer struct {
-	vlcPort    int
-	vlcPass    string
 	playerRoot string
 	root       *Item
 }
 
-func (idx *Indexer) Init(vlcPort int, vlcPass string, playerRoot string) {
-	idx.vlcPort = vlcPort
-	idx.vlcPass = vlcPass
+func (idx *Indexer) Init(playerRoot string) {
 	idx.playerRoot = playerRoot
+	idx.Reindex()
+}
 
-	// Indexace
+func (idx Indexer) GetPlayerRoot() string {
+	return idx.playerRoot
+}
+
+func (idx *Indexer) Reindex() {
 	idx.root = &Item{name: "Hudba", path: "", isDir: true}
 	idx.indexDir(idx.root)
 }

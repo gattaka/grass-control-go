@@ -8,6 +8,9 @@ import (
 	"strings"
 )
 
+const AddEndpoint = "add"
+const AddAndPlayEndpoint = "addAndPlay"
+
 func prepAjax(url string) string {
 	return "ajaxCall('" + url + "')"
 }
@@ -37,9 +40,14 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 	menuDiv.AddClass("menu-div")
 	html.Add(&menuDiv)
 
-	menuDiv.Add(NewAnchor("GrassControl", "/"))
-	menuDiv.Add(NewAnchor("Reindex", "/reindex"))
-	menuDiv.Add(NewAnchorJS("Ukončit", prepAjax("/quit")))
+	menuLeftDiv := Div{}
+	menuDiv.Add(&menuLeftDiv)
+	menuLeftDiv.Add(NewAnchor("GrassControl", "/"))
+	menuLeftDiv.Add(NewAnchor("Reindex", "/reindex"))
+
+	menuRightDiv := Div{}
+	menuDiv.Add(&menuRightDiv)
+	menuRightDiv.Add(NewAnchorJS("Ukončit", prepAjax("/quit")))
 
 	mainDiv := Div{}
 	mainDiv.AddClass("main-div")
@@ -70,8 +78,21 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 	locationDiv := Div{}
 	locationDiv.AddClass("location-div")
 	mainDiv.Add(&locationDiv)
+
+	tableBtnsParam := ""
 	if fromSearch {
-		locationDiv.SetValue("Vypisuji výsledek vyhledávání \"" + query + "\"")
+		tableBtnsParam = "search"
+	} else {
+		tableBtnsParam = "dir"
+	}
+
+	tableAddAndPlayBtn := NewButton("&#9205;", prepAjaxWithParam(AddAndPlayEndpoint+"?"+tableBtnsParam+"=", query))
+	tableAddBtn := NewButton("&#65291", prepAjaxWithParam(AddEndpoint+"?"+tableBtnsParam+"=", query))
+	locationDiv.Add(tableAddAndPlayBtn)
+	locationDiv.Add(tableAddBtn)
+
+	if fromSearch {
+		locationDiv.Add(NewSpan("Vypisuji výsledek vyhledávání \"" + query + "\""))
 	} else {
 		returnQuery := "/"
 		lastIndex := strings.LastIndex(query, "/")
@@ -87,8 +108,8 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 
 	table.Columns = make([]TableColumn[indexer.Item], 2)
 	table.Columns[0] = TableColumn[indexer.Item]{Name: "Název", Renderer: func(itm indexer.Item) string {
-		addAndPlayBtn := NewButton("&#9205;", prepAjaxWithParam("addAndPlay?id=", itm.GetPath()))
-		addBtn := NewButton("&#65291", prepAjaxWithParam("add?id=", itm.GetPath()))
+		addAndPlayBtn := NewButton("&#9205;", prepAjaxWithParam(AddAndPlayEndpoint+"?id=", itm.GetPath()))
+		addBtn := NewButton("&#65291", prepAjaxWithParam(AddEndpoint+"?id=", itm.GetPath()))
 		render := addAndPlayBtn.Render() + addBtn.Render()
 		if itm.IsDir() {
 			dirBtn := NewButton(itm.GetName(), prepDirNavigate(itm.GetPath()))
@@ -102,8 +123,8 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 		if !itm.HasParent() {
 			return ""
 		}
-		addAndPlayBtn := NewButton("&#9205;", prepAjaxWithParam("addAndPlay?id=", itm.GetParent().GetPath()))
-		addBtn := NewButton("&#65291", prepAjaxWithParam("add?id=", itm.GetParent().GetPath()))
+		addAndPlayBtn := NewButton("&#9205;", prepAjaxWithParam(AddAndPlayEndpoint+"?id=", itm.GetParent().GetPath()))
+		addBtn := NewButton("&#65291", prepAjaxWithParam(AddEndpoint+"?id=", itm.GetParent().GetPath()))
 		render := addAndPlayBtn.Render() + addBtn.Render()
 		dirBtn := NewButton(itm.GetParent().GetName(), prepDirNavigate(itm.GetParent().GetPath()))
 		render += dirBtn.Render()
