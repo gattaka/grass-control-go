@@ -5,6 +5,9 @@ import (
 	"grass-control-go/indexer"
 	"grass-control-go/server"
 	"log"
+	"os"
+	"strconv"
+	"strings"
 )
 
 import _ "embed"
@@ -27,16 +30,47 @@ var favicon string
 //go:embed resources/icons.png
 var icons string
 
-const vlcPort = 8080
-const vlcPass = "vlcgatt"
-const playerRoot = "D:/Hudba"
-
 func main() {
+
+	var vlcPortConvErr error
+	var vlcPort int
+	var vlcPass string
+	var playerRoot string
+
+	if len(os.Args) != 4 {
+		log.Fatal("Nebyly poskytnuty povinné argumenty -vlcPort=<port>, -vlcPass=<password> a -playerRoot=<playerroot>")
+	}
+
+	for i, val := range os.Args {
+		if i == 0 {
+			// první argument je název programu
+			continue
+		}
+		keyVal := strings.Split(val, "=")
+		if len(keyVal) == 2 {
+			if strings.ToLower(keyVal[0]) == "-vlcport" {
+				vlcPort, vlcPortConvErr = strconv.Atoi(keyVal[1])
+			} else if strings.ToLower(keyVal[0]) == "-vlcpass" {
+				vlcPass = keyVal[1]
+			} else if strings.ToLower(keyVal[0]) == "-playerroot" {
+				playerRoot = keyVal[1]
+			}
+		}
+	}
+
+	if vlcPortConvErr != nil || vlcPort < 1 {
+		log.Fatal("VLC port musí být celé pozitivní číslo")
+	}
+	if len(vlcPass) == 0 {
+		log.Fatal("VLC password nesmí být prázdný")
+	}
+	if len(playerRoot) == 0 {
+		log.Fatal("Player root nesmí být prázdný")
+	}
 
 	indexer := indexer.Indexer{}
 	indexer.Init(playerRoot)
 
-	// Declare a local VLC instance on port 8080 with password "password"
 	myVLC, err := vlcctrl.NewVLC("127.0.0.1", vlcPort, vlcPass)
 	if err != nil {
 		log.Fatal(err)
