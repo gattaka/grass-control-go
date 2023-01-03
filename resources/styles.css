@@ -121,7 +121,17 @@ body {
 #current-song-div {
     font-weight: bolder;
     font-size: 20px;
-    margin-left: var(--spacing);
+}
+
+#progress-slider {
+    margin: var(--spacing);
+    width: 100%;
+}
+
+#progress-div {
+    display: flex;
+    align-items: center;
+    line-height: 30px;
 }
 
 h1 {
@@ -212,11 +222,19 @@ input[type="button"].selected {
 
 #loop-btn {
     background-position: calc(-32px - 1px) calc(-3 * 32px - 1px);
-    margin-left: var(--spacing);
 }
 
 #shuffle-btn {
     background-position: calc(-1px) calc(-3 * 32px - 1px);
+}
+
+#volume-div {
+    display: flex;
+    align-items: flex-end;
+}
+
+#volume-slider {
+
 }
 
 .location-div {
@@ -228,7 +246,7 @@ input[type="button"].selected {
 }
 
 .search-form {
-    margin-bottom: calc(2 * var(--spacing));
+    margin-bottom: var(--spacing);
 }
 
 .search-form input {

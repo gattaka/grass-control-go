@@ -11,8 +11,9 @@ import (
 const AddEndpoint = "/add"
 const AddAndPlayEndpoint = "/addAndPlay"
 const IdParam = "id"
+const ValueParam = "value"
 const DirParam = "dir"
-const SearchParam = "search"
+const SearchParam = "grass-control-search"
 
 func prepAjax(url string) string {
 	return "ajaxCall('" + url + "')"
@@ -62,10 +63,39 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, r *http.Request
 	searchForm.SetAction("/")
 	mainDiv.Add(&searchForm)
 
-	searchInput := Input{}
+	searchInput := TextInput{}
 	searchInput.SetValue(r.URL.Query().Get(SearchParam))
 	searchInput.SetName(SearchParam)
+	searchInput.SetAttribute("autocomplete", "do-not-autofill")
 	searchForm.Add(&searchInput)
+
+	currentSongDiv := Div{}
+	currentSongDiv.SetId("current-song-div")
+	mainDiv.Add(&currentSongDiv)
+
+	progressDiv := Div{}
+	progressDiv.SetId("progress-div")
+	mainDiv.Add(&progressDiv)
+
+	progressTimeSpan := Span{}
+	progressTimeSpan.SetId("progress-time-span")
+	progressDiv.Add(&progressTimeSpan)
+
+	progressControl := RangeInput{}
+	progressControl.SetMin(0)
+	progressControl.SetMax(100)
+	progressControl.SetId("progress-slider")
+	progressControlChangeToggle := "elementsUnderChange['" + progressControl.GetId() + "']="
+	progressControl.SetAttribute("onmousedown", progressControlChangeToggle+"true;")
+	progressControl.SetAttribute("onmouseup", progressControlChangeToggle+"false;")
+	progressControl.SetAttribute("onblur", progressControlChangeToggle+"false;")
+	progressControl.SetOnChange("ajaxCall('progress?value='+this.value);")
+	progressControl.SetAttribute("onwheel", "progressControlScroll(event, val => {ajaxCall('progress?value='+val)});")
+	progressDiv.Add(&progressControl)
+
+	progressLengthSpan := Span{}
+	progressLengthSpan.SetId("progress-length-span")
+	progressDiv.Add(&progressLengthSpan)
 
 	controlsDiv := Div{}
 	controlsDiv.AddClass("controls-div")
@@ -78,9 +108,25 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, r *http.Request
 	controlsDiv.Add(NewButton("", prepAjax("loop")).SetId("loop-btn"))
 	controlsDiv.Add(NewButton("", prepAjax("shuffle")).SetId("shuffle-btn"))
 
-	currentSongDiv := Div{}
-	currentSongDiv.SetId("current-song-div")
-	controlsDiv.Add(&currentSongDiv)
+	volumeControlDiv := Div{}
+	volumeControlDiv.SetId("volume-div")
+	controlsDiv.Add(&volumeControlDiv)
+
+	volumeControl := RangeInput{}
+	volumeControl.SetMin(0)
+	volumeControl.SetMax(320)
+	volumeControl.SetId("volume-slider")
+	volumeControlChangeToggle := "elementsUnderChange['" + volumeControl.GetId() + "']="
+	volumeControl.SetAttribute("onmousedown", volumeControlChangeToggle+"true;")
+	volumeControl.SetAttribute("onmouseup", volumeControlChangeToggle+"false;")
+	volumeControl.SetAttribute("onblur", volumeControlChangeToggle+"false;")
+	volumeControl.SetOnChange("ajaxCall('volume?value='+this.value);")
+	volumeControl.SetAttribute("onwheel", "volumeControlScroll(event, val => {ajaxCall('volume?value='+val)});")
+	volumeControlDiv.Add(&volumeControl)
+
+	volumeSpan := Span{}
+	volumeSpan.SetId("volume-span")
+	volumeControlDiv.Add(&volumeSpan)
 
 	// Výpis aktuálního umístění
 	locationDiv := Div{}

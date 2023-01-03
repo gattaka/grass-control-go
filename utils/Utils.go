@@ -1,6 +1,8 @@
 package utils
 
-import "net/url"
+import (
+	"net/url"
+)
 
 func EncodeURL(value string) string {
 	// https://go.dev/play/p/pOfrn-Wsq5
@@ -13,4 +15,18 @@ func EncodeURL(value string) string {
 	// VLC má vadu a nebere URL mezery jako '+', zvládá jen '%20'
 	//encoded := url.QueryEscape("file:///D:/Hudba/" + value)
 	return encoded
+}
+
+func Min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func Max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }

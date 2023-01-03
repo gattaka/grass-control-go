@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"log"
+	"strconv"
 )
 
 type vlcJson struct {
@@ -82,6 +83,9 @@ type vlcJson struct {
 	Equalizer     []interface{} `json:"equalizer"`
 }
 
+const addClass = "addClass"
+const removeClass = "removeClass"
+
 type GrassControlOperationJson struct {
 	Name   string   `json:"name"`
 	Params []string `json:"params"`
@@ -93,9 +97,9 @@ type GrassControlJson struct {
 
 func addOrRemoveClass(add bool) string {
 	if add {
-		return "addClass"
+		return addClass
 	} else {
-		return "removeClass"
+		return removeClass
 	}
 }
 
@@ -106,10 +110,34 @@ func processShuffle(result vlcJson, json *GrassControlJson) {
 	})
 }
 
+func processError(err error, json *GrassControlJson) {
+	json.Operations = append(json.Operations,
+		GrassControlOperationJson{"showError", []string{err.Error()}},
+		GrassControlOperationJson{removeClass, []string{"info-div", "info"}},
+		GrassControlOperationJson{removeClass, []string{"info-div", "info-div-show"}},
+		GrassControlOperationJson{addClass, []string{"info-div", "error"}},
+		GrassControlOperationJson{addClass, []string{"info-div", "info-div-show"}},
+	)
+}
+
 func processLoop(result vlcJson, json *GrassControlJson) {
 	json.Operations = append(json.Operations, GrassControlOperationJson{
 		addOrRemoveClass(result.Loop),
 		[]string{"loop-btn", "checked"},
+	})
+}
+
+func processVolume(result vlcJson, json *GrassControlJson) {
+	json.Operations = append(json.Operations, GrassControlOperationJson{
+		"volume",
+		[]string{strconv.Itoa(Min(result.Volume, 320))}, // 320 ~ 125% (dál se změny neprojevují)
+	})
+}
+
+func processProgress(result vlcJson, json *GrassControlJson) {
+	json.Operations = append(json.Operations, GrassControlOperationJson{
+		"progress",
+		[]string{strconv.Itoa(result.Time), strconv.Itoa(result.Length)},
 	})
 }
 
@@ -148,7 +176,7 @@ func processCurrentSong(result vlcJson, json *GrassControlJson) {
 	})
 }
 
-func ProcessOperations(vlcResponse string) string {
+func ProcessOperations(errorPending *error, vlcResponse string) string {
 	var result vlcJson
 	json.Unmarshal([]byte(vlcResponse), &result)
 	operations := GrassControlJson{}
@@ -157,6 +185,13 @@ func ProcessOperations(vlcResponse string) string {
 	processLoop(result, &operations)
 	processPausedPlaying(result, &operations)
 	processCurrentSong(result, &operations)
+	processVolume(result, &operations)
+	processProgress(result, &operations)
+
+	if errorPending != nil {
+		processError(*errorPending, &operations)
+		*errorPending = nil
+	}
 
 	bytes, err := json.Marshal(operations)
 	if err != nil {

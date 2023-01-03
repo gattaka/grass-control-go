@@ -32,13 +32,15 @@ var icons string
 
 func main() {
 
-	var vlcPortConvErr error
+	var port int
+	var portConvErr error
 	var vlcPort int
+	var vlcPortConvErr error
 	var vlcPass string
 	var playerRoot string
 
-	if len(os.Args) != 4 {
-		log.Fatal("Nebyly poskytnuty povinné argumenty -vlcPort=<port>, -vlcPass=<password> a -playerRoot=<playerroot>")
+	if len(os.Args) != 5 {
+		log.Fatal("Nebyly poskytnuty povinné argumenty -port=<port> -vlcPort=<port>, -vlcPass=<password> a -playerRoot=<playerroot>")
 	}
 
 	for i, val := range os.Args {
@@ -48,7 +50,9 @@ func main() {
 		}
 		keyVal := strings.Split(val, "=")
 		if len(keyVal) == 2 {
-			if strings.ToLower(keyVal[0]) == "-vlcport" {
+			if strings.ToLower(keyVal[0]) == "-port" {
+				port, portConvErr = strconv.Atoi(keyVal[1])
+			} else if strings.ToLower(keyVal[0]) == "-vlcport" {
 				vlcPort, vlcPortConvErr = strconv.Atoi(keyVal[1])
 			} else if strings.ToLower(keyVal[0]) == "-vlcpass" {
 				vlcPass = keyVal[1]
@@ -58,6 +62,9 @@ func main() {
 		}
 	}
 
+	if portConvErr != nil || port < 1 {
+		log.Fatal("Port musí být celé pozitivní číslo")
+	}
 	if vlcPortConvErr != nil || vlcPort < 1 {
 		log.Fatal("VLC port musí být celé pozitivní číslo")
 	}
@@ -82,5 +89,5 @@ func main() {
 		Favicon: favicon,
 		Icons:   icons,
 	}
-	server.StartServer(myVLC, indexer, resources)
+	server.StartServer(port, myVLC, indexer, resources)
 }

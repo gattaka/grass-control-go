@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -19,7 +20,9 @@ type Resources struct {
 	Icons   string
 }
 
-func StartServer(myVLC vlcctrl.VLC, indexer indexer.Indexer, resources Resources) {
+func StartServer(port int, myVLC vlcctrl.VLC, indexer indexer.Indexer, resources Resources) {
+	var errorPending *error
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Has(ui.SearchParam) {
 			// hledá se cokoliv dle názvu
@@ -50,13 +53,7 @@ func StartServer(myVLC vlcctrl.VLC, indexer indexer.Indexer, resources Resources
 
 	ret := func(w http.ResponseWriter, err error) {
 		if err != nil {
-			operations := "showError," + err.Error()
-			operations += ";removeClass,info-div,info;"
-			operations += ";removeClass,info-div,info-div-show;"
-			operations += ";removeClass,info-div,info-div-hide;"
-			operations += ";addClass,info-div,error;"
-			operations += ";addClass,info-div,info-div-show;"
-			io.WriteString(w, operations)
+			*errorPending = err
 		}
 	}
 
@@ -66,7 +63,7 @@ func StartServer(myVLC vlcctrl.VLC, indexer indexer.Indexer, resources Resources
 
 	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
 		response, _ := myVLC.RequestMaker("/requests/status.json")
-		operations := utils.ProcessOperations(response)
+		operations := utils.ProcessOperations(errorPending, response)
 		io.WriteString(w, operations)
 	})
 
@@ -78,6 +75,26 @@ func StartServer(myVLC vlcctrl.VLC, indexer indexer.Indexer, resources Resources
 	// chyba v názvu funkce, ve skutečnosti volá Random (shuffle)
 	http.HandleFunc("/shuffle", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.ToggleLoop()) })
 	http.HandleFunc("/loop", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.ToggleRepeat()) })
+	http.HandleFunc("/volume", func(w http.ResponseWriter, r *http.Request) {
+		query := r.URL.Query()
+		if query.Has(ui.ValueParam) {
+			val, err := strconv.Atoi(query.Get(ui.ValueParam))
+			if err != nil {
+				return
+			}
+			ret(w, myVLC.Volume(strconv.Itoa(val)))
+		}
+	})
+	http.HandleFunc("/progress", func(w http.ResponseWriter, r *http.Request) {
+		query := r.URL.Query()
+		if query.Has(ui.ValueParam) {
+			val, err := strconv.Atoi(query.Get(ui.ValueParam))
+			if err != nil {
+				return
+			}
+			ret(w, myVLC.Seek(strconv.Itoa(val)))
+		}
+	})
 
 	addOrAddAndPlay := func(w http.ResponseWriter, r *http.Request, andPlay bool) {
 		query := r.URL.Query()
@@ -115,5 +132,5 @@ func StartServer(myVLC vlcctrl.VLC, indexer indexer.Indexer, resources Resources
 		os.Exit(0)
 	})
 
-	log.Fatal(http.ListenAndServe(":8888", nil))
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), nil))
 }
