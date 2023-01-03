@@ -25,7 +25,7 @@ func StartServer(myVLC vlcctrl.VLC, indexer indexer.Indexer, resources Resources
 			// hledá se cokoliv dle názvu
 			searchQuery := r.URL.Query().Get(ui.SearchParam)
 			if searchQuery != "" {
-				ui.ConstructPage(indexer.FindByString(searchQuery), w, true, searchQuery)
+				ui.ConstructPage(indexer.FindByString(searchQuery), w, r, true, searchQuery)
 				return
 			}
 		} else if r.URL.Query().Has(ui.DirParam) {
@@ -34,13 +34,13 @@ func StartServer(myVLC vlcctrl.VLC, indexer indexer.Indexer, resources Resources
 			path := strings.Trim(dirQuery, "/")
 			if len(path) > 0 {
 				parts := strings.Split(path, "/")
-				ui.ConstructPage(indexer.FindByPath(parts), w, false, dirQuery)
+				ui.ConstructPage(indexer.FindByPath(parts), w, r, false, dirQuery)
 				return
 			}
 		}
 
 		// výchozí pohled
-		ui.ConstructPage(indexer.GetAllItems(), w, false, "/")
+		ui.ConstructPage(indexer.GetAllItems(), w, r, false, "/")
 	})
 
 	http.HandleFunc("/resources/styles.css", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, resources.Styles) })
@@ -107,7 +107,7 @@ func StartServer(myVLC vlcctrl.VLC, indexer indexer.Indexer, resources Resources
 
 	http.HandleFunc("/reindex", func(w http.ResponseWriter, r *http.Request) {
 		indexer.Reindex()
-		ui.ConstructPage(indexer.GetAllItems(), w, false, "/")
+		ui.ConstructPage(indexer.GetAllItems(), w, r, false, "/")
 	})
 
 	http.HandleFunc("/quit", func(w http.ResponseWriter, r *http.Request) {

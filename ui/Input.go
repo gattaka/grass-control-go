@@ -14,6 +14,7 @@ func (i *Input) SetAttribute(name string, value string) Element {
 }
 func (i *Input) SetOnChange(value string) { i.cmn.setAttribute("onchange", value) }
 func (i *Input) SetValue(value string)    { i.cmn.setAttribute("value", value) }
+func (i *Input) SetName(value string)     { i.cmn.setAttribute("name", value) }
 func (i *Input) Render() string {
 	i.cmn.setAttribute("type", "text")
 	return i.cmn.render("input")

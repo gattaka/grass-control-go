@@ -227,8 +227,12 @@ input[type="button"].selected {
     font-size: 16px;
 }
 
-.search-div {
+.search-form {
     margin-bottom: calc(2 * var(--spacing));
+}
+
+.search-form input {
+    width: 100%;
 }
 
 .table-div {

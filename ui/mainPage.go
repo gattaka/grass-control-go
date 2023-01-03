@@ -26,7 +26,7 @@ func prepDirNavigate(urlToEncode string) string {
 	return "window.location.href='/?" + DirParam + "=" + utils.EncodeURL(urlToEncode) + "'"
 }
 
-func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool, query string) {
+func ConstructPage(items []*indexer.Item, w http.ResponseWriter, r *http.Request, fromSearch bool, query string) {
 	html := Html{}
 	html.Headers = []string{
 		"<link rel='stylesheet' href='resources/styles.css'/>",
@@ -56,10 +56,16 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, fromSearch bool
 	mainDiv.AddClass("main-div")
 	html.Add(&mainDiv)
 
+	searchForm := Form{}
+	searchForm.AddClass("search-form")
+	searchForm.SetMethod("get")
+	searchForm.SetAction("/")
+	mainDiv.Add(&searchForm)
+
 	searchInput := Input{}
-	searchInput.SetOnChange("window.location.href='/?" + SearchParam + "=' + encodeURIComponent(this.value);")
-	searchInput.AddClass("search-div")
-	mainDiv.Add(&searchInput)
+	searchInput.SetValue(r.URL.Query().Get(SearchParam))
+	searchInput.SetName(SearchParam)
+	searchForm.Add(&searchInput)
 
 	controlsDiv := Div{}
 	controlsDiv.AddClass("controls-div")
