@@ -39,7 +39,7 @@ function applyJSModifiers(operations) {
                 document.getElementById("current-song-div").innerText = params[0];
                 break;
             case "volume":
-                document.getElementById("volume-span").innerText = Math.floor(params[0] * 100 / 256)+ "%";
+                document.getElementById("volume-span").innerText = Math.floor(params[0] * 100 / 256) + "%";
                 let volumeSliderId = "volume-slider";
                 if (!elementsUnderChange[volumeSliderId])
                     document.getElementById(volumeSliderId).value = Number(params[0]);
@@ -80,5 +80,6 @@ function volumeControlScroll(event, callback) {
 }
 
 setInterval(() => {
-    ajaxCall("/status")
+    if (!document.hidden)
+        ajaxCall("/status")
 }, 200);
