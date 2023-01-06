@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-type vlcJson struct {
+type VlcStatus struct {
 	Fullscreen int `json:"fullscreen"`
 	Stats      struct {
 		Inputbitrate        float64 `json:"inputbitrate"`
@@ -91,7 +91,7 @@ type GrassControlOperationJson struct {
 	Params []string `json:"params"`
 }
 
-type GrassControlJson struct {
+type GrassControlStatusJson struct {
 	Operations []GrassControlOperationJson `json:"operations"`
 }
 
@@ -103,14 +103,14 @@ func addOrRemoveClass(add bool) string {
 	}
 }
 
-func processShuffle(result vlcJson, json *GrassControlJson) {
+func processShuffle(result VlcStatus, json *GrassControlStatusJson) {
 	json.Operations = append(json.Operations, GrassControlOperationJson{
 		addOrRemoveClass(result.Random),
 		[]string{"shuffle-btn", "checked"},
 	})
 }
 
-func processError(err error, json *GrassControlJson) {
+func processError(err error, json *GrassControlStatusJson) {
 	json.Operations = append(json.Operations,
 		GrassControlOperationJson{"showError", []string{err.Error()}},
 		GrassControlOperationJson{removeClass, []string{"info-div", "info"}},
@@ -120,28 +120,28 @@ func processError(err error, json *GrassControlJson) {
 	)
 }
 
-func processLoop(result vlcJson, json *GrassControlJson) {
+func processLoop(result VlcStatus, json *GrassControlStatusJson) {
 	json.Operations = append(json.Operations, GrassControlOperationJson{
 		addOrRemoveClass(result.Loop),
 		[]string{"loop-btn", "checked"},
 	})
 }
 
-func processVolume(result vlcJson, json *GrassControlJson) {
+func processVolume(result VlcStatus, json *GrassControlStatusJson) {
 	json.Operations = append(json.Operations, GrassControlOperationJson{
 		"volume",
 		[]string{strconv.Itoa(Min(result.Volume, 320))}, // 320 ~ 125% (dál se změny neprojevují)
 	})
 }
 
-func processProgress(result vlcJson, json *GrassControlJson) {
+func processProgress(result VlcStatus, json *GrassControlStatusJson) {
 	json.Operations = append(json.Operations, GrassControlOperationJson{
 		"progress",
 		[]string{strconv.Itoa(result.Time), strconv.Itoa(result.Length)},
 	})
 }
 
-func processPausedPlaying(result vlcJson, json *GrassControlJson) {
+func processPausedPlaying(result VlcStatus, json *GrassControlStatusJson) {
 	isPlaying := result.State == "playing"
 	json.Operations = append(json.Operations, GrassControlOperationJson{
 		addOrRemoveClass(isPlaying),
@@ -153,7 +153,7 @@ func processPausedPlaying(result vlcJson, json *GrassControlJson) {
 	})
 }
 
-func processCurrentSong(result vlcJson, json *GrassControlJson) {
+func processCurrentSong(result VlcStatus, json *GrassControlStatusJson) {
 	artist := result.Information.Category.Meta.Artist
 	title := result.Information.Category.Meta.Title
 	album := result.Information.Category.Meta.Album
@@ -174,19 +174,23 @@ func processCurrentSong(result vlcJson, json *GrassControlJson) {
 		"songInfo",
 		[]string{value},
 	})
+	json.Operations = append(json.Operations, GrassControlOperationJson{
+		"playlistSelect",
+		[]string{"playlist-item-" + strconv.Itoa(result.Currentplid)},
+	})
 }
 
-func ProcessOperations(errorPending *error, vlcResponse string) string {
-	var result vlcJson
-	json.Unmarshal([]byte(vlcResponse), &result)
-	operations := GrassControlJson{}
+func UpdateStatus(errorPending *error, vlcStatusJSON string) string {
+	var vlcStatus VlcStatus
+	json.Unmarshal([]byte(vlcStatusJSON), &vlcStatus)
+	operations := GrassControlStatusJson{}
 
-	processShuffle(result, &operations)
-	processLoop(result, &operations)
-	processPausedPlaying(result, &operations)
-	processCurrentSong(result, &operations)
-	processVolume(result, &operations)
-	processProgress(result, &operations)
+	processShuffle(vlcStatus, &operations)
+	processLoop(vlcStatus, &operations)
+	processPausedPlaying(vlcStatus, &operations)
+	processCurrentSong(vlcStatus, &operations)
+	processVolume(vlcStatus, &operations)
+	processProgress(vlcStatus, &operations)
 
 	if errorPending != nil {
 		processError(*errorPending, &operations)

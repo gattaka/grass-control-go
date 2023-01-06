@@ -3,13 +3,13 @@ package ui
 import (
 	"grass-control-go/indexer"
 	"grass-control-go/utils"
-	"io"
-	"net/http"
+	"strconv"
 	"strings"
 )
 
 const AddEndpoint = "/add"
 const AddAndPlayEndpoint = "/addAndPlay"
+const PlayEndpoint = "/play"
 const IdParam = "id"
 const ValueParam = "value"
 const DirParam = "dir"
@@ -27,7 +27,39 @@ func prepDirNavigate(urlToEncode string) string {
 	return "window.location.href='/?" + DirParam + "=" + utils.EncodeURL(urlToEncode) + "'"
 }
 
-func ConstructPage(items []*indexer.Item, w http.ResponseWriter, r *http.Request, fromSearch bool, query string) {
+func ConstructPlaylist(items *[]*utils.VlcPlaylistNode) string {
+	table := Table[utils.VlcPlaylistNode]{}
+
+	table.Items = *items
+
+	table.ItemIdProvider = func(item utils.VlcPlaylistNode) string {
+		return "playlist-item-" + item.Id
+	}
+
+	table.Columns = make([]TableColumn[utils.VlcPlaylistNode], 2)
+	nameColumn := TableColumn[utils.VlcPlaylistNode]{Name: "Název", Renderer: func(itm utils.VlcPlaylistNode) string {
+		playBtn := NewButton("&#9205;", prepAjaxWithParam(PlayEndpoint+"?"+IdParam+"=", itm.Id))
+		render := playBtn.Render()
+		render += itm.Name
+		return render
+	}}
+	nameColumn.Width = 80
+
+	table.Columns[0] = nameColumn
+	durationColumn := TableColumn[utils.VlcPlaylistNode]{Name: "Délka", Renderer: func(itm utils.VlcPlaylistNode) string {
+		sec := strconv.Itoa(itm.Duration % 60)
+		if len(sec) == 1 {
+			sec = "0" + sec
+		}
+		return strconv.Itoa(itm.Duration/60) + ":" + sec
+	}}
+	durationColumn.Width = 20
+	table.Columns[1] = durationColumn
+
+	return table.Render()
+}
+
+func ConstructPage(items []*indexer.Item, fromSearch bool, query string) string {
 	html := Html{}
 	html.Headers = []string{
 		"<link rel='stylesheet' href='resources/styles.css'/>",
@@ -54,28 +86,36 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, r *http.Request
 	menuRightDiv.Add(NewAnchorJS("Ukončit", prepAjax("/quit")))
 
 	mainDiv := Div{}
-	mainDiv.AddClass("main-div")
+	mainDiv.SetId("main-div")
 	html.Add(&mainDiv)
+
+	libraryDiv := Div{}
+	libraryDiv.SetId("library-div")
+	mainDiv.Add(&libraryDiv)
+
+	playlistDiv := Div{}
+	playlistDiv.SetId("playlist-div")
+	mainDiv.Add(&playlistDiv)
 
 	searchForm := Form{}
 	searchForm.AddClass("search-form")
 	searchForm.SetMethod("get")
 	searchForm.SetAction("/")
-	mainDiv.Add(&searchForm)
+	libraryDiv.Add(&searchForm)
 
 	searchInput := TextInput{}
-	searchInput.SetValue(r.URL.Query().Get(SearchParam))
+	searchInput.SetValue(query)
 	searchInput.SetName(SearchParam)
 	searchInput.SetAttribute("autocomplete", "do-not-autofill")
 	searchForm.Add(&searchInput)
 
 	currentSongDiv := Div{}
 	currentSongDiv.SetId("current-song-div")
-	mainDiv.Add(&currentSongDiv)
+	libraryDiv.Add(&currentSongDiv)
 
 	progressDiv := Div{}
 	progressDiv.SetId("progress-div")
-	mainDiv.Add(&progressDiv)
+	libraryDiv.Add(&progressDiv)
 
 	progressTimeSpan := Span{}
 	progressTimeSpan.SetId("progress-time-span")
@@ -99,7 +139,7 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, r *http.Request
 
 	controlsDiv := Div{}
 	controlsDiv.AddClass("controls-div")
-	mainDiv.Add(&controlsDiv)
+	libraryDiv.Add(&controlsDiv)
 
 	controlsDiv.Add(NewButton("", prepAjax("pause")).SetId("play-pause-btn"))
 	controlsDiv.Add(NewButton("", prepAjax("prev")).SetId("prev-btn"))
@@ -131,7 +171,7 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, r *http.Request
 	// Výpis aktuálního umístění
 	locationDiv := Div{}
 	locationDiv.AddClass("location-div")
-	mainDiv.Add(&locationDiv)
+	libraryDiv.Add(&locationDiv)
 
 	locationDiv.Add(NewButton("&#10006", prepAjax("clear")))
 
@@ -186,8 +226,8 @@ func ConstructPage(items []*indexer.Item, w http.ResponseWriter, r *http.Request
 		render += dirBtn.Render()
 		return render
 	}}
-	mainDiv.Add(&table)
+	libraryDiv.Add(&table)
 
 	result := html.Render()
-	io.WriteString(w, result)
+	return result
 }

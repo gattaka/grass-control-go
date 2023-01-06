@@ -1,15 +1,14 @@
-let elementsUnderChange = {}
+let elementsUnderChange = {};
+let lastPlaylistHash = 0;
 
-function ajaxCall(url) {
+function ajaxCall(url, callback) {
     const xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = () => {
         if (xhttp.readyState === 4 && xhttp.response !== undefined) {
-            let modifiers = xhttp.response;
-            if (modifiers == "")
+            if (xhttp.response == "" || typeof callback === "undefined")
                 return;
             try {
-                const obj = JSON.parse(modifiers);
-                applyJSModifiers(obj.operations);
+                callback(JSON.parse(xhttp.response));
             } catch (error) {
                 console.error(error);
             }
@@ -55,6 +54,27 @@ function applyJSModifiers(operations) {
                     document.getElementById("progress-time-span").innerText = formatTime(time);
                 }
                 break;
+            case "playlistSelect":
+                let id = params[0]
+                const className = "table-tr-selected";
+                const collection = document.getElementsByClassName(className);
+                let noChange = false;
+                for (element of collection) {
+                    // pokud je záznam již označen, nic neřeš
+                    if (element.classList.contains(className) && element.id == id) {
+                        noChange = true;
+                        break;
+                    }
+                    element.classList.remove(className);
+                }
+                if (noChange)
+                    break;
+                let target = document.getElementById(id);
+                if (target) {
+                    target.scrollIntoView();
+                    target.classList.add(className);
+                }
+                break;
         }
     }
 }
@@ -80,6 +100,17 @@ function volumeControlScroll(event, callback) {
 }
 
 setInterval(() => {
-    if (!document.hidden)
-        ajaxCall("/status")
+    if (!document.hidden) {
+        ajaxCall("/status", json => {
+            applyJSModifiers(json.operations);
+        });
+        ajaxCall("/playlist", json => {
+            hash = Number(json["hash"])
+            if (hash != lastPlaylistHash) {
+                lastPlaylistHash = hash;
+                html = json["html"]
+                document.getElementById("playlist-div").innerHTML = html;
+            }
+        });
+    }
 }, 200);
