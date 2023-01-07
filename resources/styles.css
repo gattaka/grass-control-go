@@ -267,7 +267,7 @@ input[type="button"].selected {
 }
 
 .table-tr-selected {
-    background: var(--checked-border-color);
+    background: var(--checked-border-color) !important;
     color: white;
 }
 

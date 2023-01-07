@@ -106,31 +106,39 @@ func StartServer(port int, myVLC vlcctrl.VLC, indexer indexer.Indexer, resources
 		io.WriteString(w, utils.ConstructPlaylistJSON(render, hash))
 	})
 
-	addOrAddAndPlay := func(w http.ResponseWriter, r *http.Request, andPlay bool) {
+	// mode
+	// 0 = add, 1 = addAndPlay, 2 = playFromPlaylist
+	addPlay := func(w http.ResponseWriter, r *http.Request, mode int) {
 		query := r.URL.Query()
 		if query.Has(ui.IdParam) {
 			target := prepURL(query.Get(ui.IdParam))
-			if andPlay {
-				ret(w, myVLC.AddStart(target))
-			} else {
+			if mode == 0 {
 				ret(w, myVLC.Add(target))
+			} else if mode == 1 {
+				ret(w, myVLC.AddStart(target))
+			} else if mode == 2 {
+				id, err := strconv.Atoi(query.Get(ui.IdParam))
+				if err == nil {
+					ret(w, myVLC.Play(id))
+				}
 			}
 		} else if query.Has(ui.SearchParam) {
 			searchQuery := query.Get(ui.SearchParam)
 			items := indexer.FindByString(searchQuery)
 			for _, item := range items {
 				target := prepURL(item.GetPath())
-				if andPlay {
-					ret(w, myVLC.AddStart(target))
-				} else {
+				if mode == 0 {
 					ret(w, myVLC.Add(target))
+				} else if mode == 1 {
+					ret(w, myVLC.AddStart(target))
 				}
 			}
 		}
 	}
 
-	http.HandleFunc(ui.AddEndpoint, func(w http.ResponseWriter, r *http.Request) { addOrAddAndPlay(w, r, false) })
-	http.HandleFunc(ui.AddAndPlayEndpoint, func(w http.ResponseWriter, r *http.Request) { addOrAddAndPlay(w, r, true) })
+	http.HandleFunc(ui.AddEndpoint, func(w http.ResponseWriter, r *http.Request) { addPlay(w, r, 0) })
+	http.HandleFunc(ui.AddAndPlayEndpoint, func(w http.ResponseWriter, r *http.Request) { addPlay(w, r, 1) })
+	http.HandleFunc(ui.PlayEndpoint, func(w http.ResponseWriter, r *http.Request) { addPlay(w, r, 2) })
 
 	http.HandleFunc("/reindex", func(w http.ResponseWriter, r *http.Request) {
 		indexer.Reindex()

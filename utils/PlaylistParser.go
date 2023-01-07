@@ -5,6 +5,7 @@ import (
 	"hash"
 	"hash/fnv"
 	"log"
+	"strconv"
 )
 
 type VlcPlaylistNode struct {
@@ -30,6 +31,9 @@ func processPlaylist(node VlcPlaylistNode, items *[]*VlcPlaylistNode, hash *hash
 		}
 	} else {
 		(*hash).Write([]byte(node.Uri))
+		// do hash započítávám i délku média, protože VLC z počátku neví a vypíše -1, až dodatečně čas dopočítá,
+		// takže i já musím dodatečně aktualizovat seznam
+		(*hash).Write([]byte(strconv.Itoa(node.Duration)))
 		*items = append(*items, &node)
 	}
 }
@@ -38,6 +42,8 @@ func ParsePlaylist(vlcPlaylistJSON string) (*[]*VlcPlaylistNode, uint32) {
 	var vlcPlaylist VlcPlaylistNode
 	json.Unmarshal([]byte(vlcPlaylistJSON), &vlcPlaylist)
 	var items []*VlcPlaylistNode
+
+	// Hash se používá k indikaci změny playlistu -- aby se neaktualizoval i když není potřeba a neproblikával
 	hash := fnv.New32a()
 	processPlaylist(vlcPlaylist, &items, &hash)
 	return &items, hash.Sum32()
