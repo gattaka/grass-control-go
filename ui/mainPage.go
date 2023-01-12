@@ -10,10 +10,17 @@ import (
 const AddEndpoint = "/add"
 const AddAndPlayEndpoint = "/addAndPlay"
 const PlayEndpoint = "/play"
+const RemoveEndpoint = "/remove"
 const IdParam = "id"
 const ValueParam = "value"
 const DirParam = "dir"
 const SearchParam = "grass-control-search"
+
+const TableControlBtnClass = "table-control-btn"
+
+const CrossUnicode = "&#10006;"
+const PlayUnicode = "&#9205;"
+const PlusUnicode = "&#65291;"
 
 func prepAjax(url string) string {
 	return "ajaxCall('" + url + "')"
@@ -38,8 +45,12 @@ func ConstructPlaylist(items *[]*utils.VlcPlaylistNode) string {
 
 	table.Columns = make([]TableColumn[utils.VlcPlaylistNode], 2)
 	nameColumn := TableColumn[utils.VlcPlaylistNode]{Name: "Název", Renderer: func(itm utils.VlcPlaylistNode) string {
-		playBtn := NewButton("&#9205;", prepAjaxWithParam(PlayEndpoint+"?"+IdParam+"=", itm.Id))
-		render := playBtn.Render()
+		removeBtn := NewButton(CrossUnicode, prepAjaxWithParam(RemoveEndpoint+"?"+IdParam+"=", itm.Id))
+		removeBtn.AddClass(TableControlBtnClass)
+		render := removeBtn.Render()
+		playBtn := NewButton(PlayUnicode, prepAjaxWithParam(PlayEndpoint+"?"+IdParam+"=", itm.Id))
+		playBtn.AddClass(TableControlBtnClass)
+		render += playBtn.Render()
 		render += itm.Name
 		return render
 	}}
@@ -96,18 +107,6 @@ func ConstructPage(items []*indexer.Item, fromSearch bool, query string) string 
 	playlistDiv := Div{}
 	playlistDiv.SetId("playlist-div")
 	mainDiv.Add(&playlistDiv)
-
-	searchForm := Form{}
-	searchForm.AddClass("search-form")
-	searchForm.SetMethod("get")
-	searchForm.SetAction("/")
-	libraryDiv.Add(&searchForm)
-
-	searchInput := TextInput{}
-	searchInput.SetValue(query)
-	searchInput.SetName(SearchParam)
-	searchInput.SetAttribute("autocomplete", "do-not-autofill")
-	searchForm.Add(&searchInput)
 
 	currentSongDiv := Div{}
 	currentSongDiv.SetId("current-song-div")
@@ -173,7 +172,7 @@ func ConstructPage(items []*indexer.Item, fromSearch bool, query string) string 
 	locationDiv.AddClass("location-div")
 	libraryDiv.Add(&locationDiv)
 
-	locationDiv.Add(NewButton("&#10006", prepAjax("clear")))
+	locationDiv.Add(NewButton(CrossUnicode, prepAjax("clear")))
 
 	tableBtnsParam := ""
 	if fromSearch {
@@ -182,8 +181,10 @@ func ConstructPage(items []*indexer.Item, fromSearch bool, query string) string 
 		tableBtnsParam = IdParam
 	}
 
-	tableAddAndPlayBtn := NewButton("&#9205;", prepAjaxWithParam(AddAndPlayEndpoint+"?"+tableBtnsParam+"=", query))
-	tableAddBtn := NewButton("&#65291", prepAjaxWithParam(AddEndpoint+"?"+tableBtnsParam+"=", query))
+	tableAddAndPlayBtn := NewButton(PlayUnicode, prepAjaxWithParam(AddAndPlayEndpoint+"?"+tableBtnsParam+"=", query))
+	tableAddAndPlayBtn.AddClass(TableControlBtnClass)
+	tableAddBtn := NewButton(PlusUnicode, prepAjaxWithParam(AddEndpoint+"?"+tableBtnsParam+"=", query))
+	tableAddBtn.AddClass(TableControlBtnClass)
 	locationDiv.Add(tableAddAndPlayBtn)
 	locationDiv.Add(tableAddBtn)
 
@@ -199,13 +200,27 @@ func ConstructPage(items []*indexer.Item, fromSearch bool, query string) string 
 		locationDiv.Add(NewSpan("Vypisuji výsledek adresáře \"" + query + "\""))
 	}
 
+	searchForm := Form{}
+	searchForm.AddClass("search-form")
+	searchForm.SetMethod("get")
+	searchForm.SetAction("/")
+	libraryDiv.Add(&searchForm)
+
+	searchInput := TextInput{}
+	if fromSearch {
+		searchInput.SetValue(query)
+	}
+	searchInput.SetName(SearchParam)
+	searchInput.SetAttribute("autocomplete", "do-not-autofill")
+	searchForm.Add(&searchInput)
+
 	table := Table[indexer.Item]{}
 	table.Items = items
 
 	table.Columns = make([]TableColumn[indexer.Item], 2)
 	table.Columns[0] = TableColumn[indexer.Item]{Name: "Název", Renderer: func(itm indexer.Item) string {
-		addAndPlayBtn := NewButton("&#9205;", prepAjaxWithParam(AddAndPlayEndpoint+"?"+IdParam+"=", itm.GetPath()))
-		addBtn := NewButton("&#65291", prepAjaxWithParam(AddEndpoint+"?"+IdParam+"=", itm.GetPath()))
+		addAndPlayBtn := NewButton(PlayUnicode, prepAjaxWithParam(AddAndPlayEndpoint+"?"+IdParam+"=", itm.GetPath()))
+		addBtn := NewButton(PlusUnicode, prepAjaxWithParam(AddEndpoint+"?"+IdParam+"=", itm.GetPath()))
 		render := addAndPlayBtn.Render() + addBtn.Render()
 		if itm.IsDir() {
 			dirBtn := NewButton(itm.GetName(), prepDirNavigate(itm.GetPath()))
@@ -219,8 +234,8 @@ func ConstructPage(items []*indexer.Item, fromSearch bool, query string) string 
 		if !itm.HasParent() {
 			return ""
 		}
-		addAndPlayBtn := NewButton("&#9205;", prepAjaxWithParam(AddAndPlayEndpoint+"?"+IdParam+"=", itm.GetParent().GetPath()))
-		addBtn := NewButton("&#65291", prepAjaxWithParam(AddEndpoint+"?"+IdParam+"=", itm.GetParent().GetPath()))
+		addAndPlayBtn := NewButton(PlayUnicode, prepAjaxWithParam(AddAndPlayEndpoint+"?"+IdParam+"=", itm.GetParent().GetPath()))
+		addBtn := NewButton(PlusUnicode, prepAjaxWithParam(AddEndpoint+"?"+IdParam+"=", itm.GetParent().GetPath()))
 		render := addAndPlayBtn.Render() + addBtn.Render()
 		dirBtn := NewButton(itm.GetParent().GetName(), prepDirNavigate(itm.GetParent().GetPath()))
 		render += dirBtn.Render()

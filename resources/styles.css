@@ -1,5 +1,6 @@
 :root {
     --spacing: 5px;
+    --2spacing: calc(2 * var(--spacing));
     --scrollbar-width: 10px;
     --menu-height: 30px;
     --menu-color: hsl(0deg 0% 10%);
@@ -94,8 +95,15 @@ body {
     display: flex;
 }
 
+#main-div > div {
+    padding: var(--2spacing);
+}
+
+#main-div > div:first-child {
+    padding-right: 0;
+}
+
 #library-div, #playlist-div {
-    padding: calc(2 * var(--spacing));
     box-sizing: border-box;
     height: calc(100vh - var(--menu-height));
     display: flex;
@@ -126,6 +134,7 @@ body {
 #current-song-div {
     font-weight: bolder;
     font-size: 20px;
+    margin-bottom: var(--spacing);
 }
 
 #progress-slider {
@@ -183,7 +192,7 @@ input[type="button"].selected {
 }
 
 .controls-div, .location-div {
-    padding: 0 0 calc(2 * var(--spacing)) 0;
+    padding: 0 0 var(--2spacing) 0;
     display: flex;
     align-items: center;
 }
@@ -251,7 +260,7 @@ input[type="button"].selected {
 }
 
 .search-form {
-    margin-bottom: var(--spacing);
+    margin-bottom: var(--2spacing);
 }
 
 .search-form input {
@@ -324,6 +333,17 @@ input[type="button"].selected {
 
 .table-body-td-div, .table-body-td-div input[type="button"] {
     font-size: 14px;
+}
+
+.table-body-td-div input[type="button"] {
+    overflow: hidden;
+    max-width: 50ch;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.table-control-btn {
+    width: 28px;
 }
 
 .table-body-td-div * {

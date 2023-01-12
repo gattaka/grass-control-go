@@ -106,39 +106,56 @@ func StartServer(port int, myVLC vlcctrl.VLC, indexer indexer.Indexer, resources
 		io.WriteString(w, utils.ConstructPlaylistJSON(render, hash))
 	})
 
-	// mode
-	// 0 = add, 1 = addAndPlay, 2 = playFromPlaylist
-	addPlay := func(w http.ResponseWriter, r *http.Request, mode int) {
-		query := r.URL.Query()
-		if query.Has(ui.IdParam) {
-			target := prepURL(query.Get(ui.IdParam))
-			if mode == 0 {
-				ret(w, myVLC.Add(target))
-			} else if mode == 1 {
-				ret(w, myVLC.AddStart(target))
-			} else if mode == 2 {
-				id, err := strconv.Atoi(query.Get(ui.IdParam))
-				if err == nil {
-					ret(w, myVLC.Play(id))
-				}
-			}
-		} else if query.Has(ui.SearchParam) {
-			searchQuery := query.Get(ui.SearchParam)
-			items := indexer.FindByString(searchQuery)
-			for _, item := range items {
-				target := prepURL(item.GetPath())
-				if mode == 0 {
-					ret(w, myVLC.Add(target))
-				} else if mode == 1 {
-					ret(w, myVLC.AddStart(target))
-				}
-			}
+	fileOrSearch := func(w http.ResponseWriter, r *http.Request, idOperation func(w http.ResponseWriter, r *http.Request), searchOperation func(w http.ResponseWriter, r *http.Request)) {
+		if r.URL.Query().Has(ui.IdParam) {
+			idOperation(w, r)
+		} else if r.URL.Query().Has(ui.SearchParam) {
+			searchOperation(w, r)
 		}
 	}
 
-	http.HandleFunc(ui.AddEndpoint, func(w http.ResponseWriter, r *http.Request) { addPlay(w, r, 0) })
-	http.HandleFunc(ui.AddAndPlayEndpoint, func(w http.ResponseWriter, r *http.Request) { addPlay(w, r, 1) })
-	http.HandleFunc(ui.PlayEndpoint, func(w http.ResponseWriter, r *http.Request) { addPlay(w, r, 2) })
+	getParam := func(r *http.Request, paramName string) string {
+		query := r.URL.Query()
+		return query.Get(paramName)
+	}
+	getIdParam := func(r *http.Request) string { return getParam(r, ui.IdParam) }
+
+	addToPlaylist := func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.Add(prepURL(getIdParam(r)))) }
+	addToPlaylistPlay := func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.AddStart(prepURL(getIdParam(r)))) }
+
+	searchItems := func(w http.ResponseWriter, r *http.Request, consumer func(string) error) {
+		searchQuery := getParam(r, ui.SearchParam)
+		items := indexer.FindByString(searchQuery)
+		for _, item := range items {
+			ret(w, consumer(prepURL(item.GetPath())))
+		}
+	}
+	searchAddToPlaylist := func(w http.ResponseWriter, r *http.Request) {
+		searchItems(w, r, myVLC.Add)
+	}
+	searchAddToPlaylistPlay := func(w http.ResponseWriter, r *http.Request) {
+		searchItems(w, r, func(t string) error { return myVLC.AddStart(t) })
+	}
+
+	playFromPlaylist := func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.Atoi(getIdParam(r))
+		if err == nil {
+			ret(w, myVLC.Play(id))
+		}
+	}
+	removeFromPlaylist := func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.Atoi(getIdParam(r))
+		if err == nil {
+			ret(w, myVLC.Delete(id))
+		}
+	}
+
+	http.HandleFunc(ui.AddEndpoint, func(w http.ResponseWriter, r *http.Request) { fileOrSearch(w, r, addToPlaylist, searchAddToPlaylist) })
+	http.HandleFunc(ui.AddAndPlayEndpoint, func(w http.ResponseWriter, r *http.Request) {
+		fileOrSearch(w, r, addToPlaylistPlay, searchAddToPlaylistPlay)
+	})
+	http.HandleFunc(ui.PlayEndpoint, func(w http.ResponseWriter, r *http.Request) { playFromPlaylist(w, r) })
+	http.HandleFunc(ui.RemoveEndpoint, func(w http.ResponseWriter, r *http.Request) { removeFromPlaylist(w, r) })
 
 	http.HandleFunc("/reindex", func(w http.ResponseWriter, r *http.Request) {
 		indexer.Reindex()
