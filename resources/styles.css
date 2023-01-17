@@ -325,21 +325,36 @@ input[type="button"].selected {
 }
 
 .table-body-td-div, .table-head-td-div {
-    display: inline-block;
     padding: var(--spacing);
     box-sizing: border-box;
     width: 50%;
+
+}
+
+.table-body-td-div {
+    display: flex;
+}
+
+.table-head-td-div {
+    display: inline-block;
 }
 
 .table-body-td-div, .table-body-td-div input[type="button"] {
     font-size: 14px;
 }
 
-.table-body-td-div input[type="button"] {
-    overflow: hidden;
+.table-body-td-div > input[type="button"]:last-child {
     max-width: 50ch;
+    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.table-body-td-div span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
 }
 
 .table-control-btn {
@@ -348,4 +363,13 @@ input[type="button"].selected {
 
 .table-body-td-div * {
     margin-right: var(--spacing);
+}
+
+.control-buttons-div {
+    display: flex;
+    width: 28px;
+}
+
+.control-buttons-div input[type="button"] {
+    width: 36px;
 }

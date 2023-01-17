@@ -17,6 +17,7 @@ const DirParam = "dir"
 const SearchParam = "grass-control-search"
 
 const TableControlBtnClass = "table-control-btn"
+const ControlBtnsDivClass = "control-buttons-div"
 
 const CrossUnicode = "&#10006;"
 const PlayUnicode = "&#9205;"
@@ -45,13 +46,16 @@ func ConstructPlaylist(items *[]*utils.VlcPlaylistNode) string {
 
 	table.Columns = make([]TableColumn[utils.VlcPlaylistNode], 2)
 	nameColumn := TableColumn[utils.VlcPlaylistNode]{Name: "Název", Renderer: func(itm utils.VlcPlaylistNode) string {
+		btnsDiv := Div{}
+		btnsDiv.AddClass(ControlBtnsDivClass)
 		removeBtn := NewButton(CrossUnicode, prepAjaxWithParam(RemoveEndpoint+"?"+IdParam+"=", itm.Id))
 		removeBtn.AddClass(TableControlBtnClass)
-		render := removeBtn.Render()
 		playBtn := NewButton(PlayUnicode, prepAjaxWithParam(PlayEndpoint+"?"+IdParam+"=", itm.Id))
 		playBtn.AddClass(TableControlBtnClass)
-		render += playBtn.Render()
-		render += itm.Name
+		btnsDiv.Add(removeBtn)
+		btnsDiv.Add(playBtn)
+		render := btnsDiv.Render()
+		render += NewSpan(itm.Name).Render()
 		return render
 	}}
 	nameColumn.Width = 80
@@ -219,14 +223,18 @@ func ConstructPage(items []*indexer.Item, fromSearch bool, query string) string 
 
 	table.Columns = make([]TableColumn[indexer.Item], 2)
 	table.Columns[0] = TableColumn[indexer.Item]{Name: "Název", Renderer: func(itm indexer.Item) string {
+		btnsDiv := Div{}
+		btnsDiv.AddClass(ControlBtnsDivClass)
 		addAndPlayBtn := NewButton(PlayUnicode, prepAjaxWithParam(AddAndPlayEndpoint+"?"+IdParam+"=", itm.GetPath()))
 		addBtn := NewButton(PlusUnicode, prepAjaxWithParam(AddEndpoint+"?"+IdParam+"=", itm.GetPath()))
-		render := addAndPlayBtn.Render() + addBtn.Render()
+		btnsDiv.Add(addAndPlayBtn)
+		btnsDiv.Add(addBtn)
+		render := btnsDiv.Render()
 		if itm.IsDir() {
 			dirBtn := NewButton(itm.GetName(), prepDirNavigate(itm.GetPath()))
 			render += dirBtn.Render()
 		} else {
-			render += itm.GetName()
+			render += NewSpan(itm.GetName()).Render()
 		}
 		return render
 	}}
@@ -234,9 +242,13 @@ func ConstructPage(items []*indexer.Item, fromSearch bool, query string) string 
 		if !itm.HasParent() {
 			return ""
 		}
+		btnsDiv := Div{}
+		btnsDiv.AddClass(ControlBtnsDivClass)
 		addAndPlayBtn := NewButton(PlayUnicode, prepAjaxWithParam(AddAndPlayEndpoint+"?"+IdParam+"=", itm.GetParent().GetPath()))
 		addBtn := NewButton(PlusUnicode, prepAjaxWithParam(AddEndpoint+"?"+IdParam+"=", itm.GetParent().GetPath()))
-		render := addAndPlayBtn.Render() + addBtn.Render()
+		btnsDiv.Add(addAndPlayBtn)
+		btnsDiv.Add(addBtn)
+		render := btnsDiv.Render()
 		dirBtn := NewButton(itm.GetParent().GetName(), prepDirNavigate(itm.GetParent().GetPath()))
 		render += dirBtn.Render()
 		return render
