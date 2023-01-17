@@ -367,9 +367,9 @@ input[type="button"].selected {
 
 .control-buttons-div {
     display: flex;
-    width: 28px;
+    margin-right: 0;
 }
 
 .control-buttons-div input[type="button"] {
-    width: 36px;
+    width: 28px;
 }
