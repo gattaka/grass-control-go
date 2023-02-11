@@ -36,6 +36,7 @@ function applyJSModifiers(operations) {
                 break;
             case "songInfo":
                 document.getElementById("current-song-div").innerText = params[0];
+                document.title = "GrassControl: " + params[0];
                 break;
             case "volume":
                 document.getElementById("volume-span").innerText = Math.floor(params[0] * 100 / 256) + "%";
@@ -109,7 +110,7 @@ setInterval(() => {
             if (hash != lastPlaylistHash) {
                 lastPlaylistHash = hash;
                 html = json["html"]
-                document.getElementById("playlist-div").innerHTML = html;
+                document.getElementById("playlist-table-div").innerHTML = html;
             }
         });
     }

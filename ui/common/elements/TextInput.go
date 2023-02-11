@@ -1,4 +1,4 @@
-package ui
+package elements
 
 type TextInput struct {
 	cmn common

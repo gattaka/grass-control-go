@@ -1,4 +1,4 @@
-package ui
+package elements
 
 type Div struct {
 	cmn common

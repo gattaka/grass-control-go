@@ -1,4 +1,4 @@
-package ui
+package elements
 
 import "strconv"
 
@@ -33,8 +33,9 @@ func (t *Table[T]) Render() string {
 		}
 		widths[i] = strconv.Itoa(width) + "%;"
 	}
+	t.AddClass("table-div")
 
-	result := "<div class='table-div'><div class='table-head-div'><div class='table-head-tr-div'>"
+	result := "<div class='table-head-div'><div class='table-head-tr-div'>"
 	for i, column := range t.Columns {
 		result += "<div class='table-head-td-div' style='width:" + widths[i] + "'>" + column.Name + "</div>"
 	}
@@ -50,7 +51,7 @@ func (t *Table[T]) Render() string {
 		}
 		result += "</div>"
 	}
-	result += "</div></div>"
+	result += "</div>"
 	t.cmn.content = result
-	return t.cmn.render("table")
+	return t.cmn.render("div")
 }

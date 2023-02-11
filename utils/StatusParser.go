@@ -170,6 +170,9 @@ func processCurrentSong(result VlcStatus, json *GrassControlStatusJson) {
 	} else if filename != "" {
 		value += filename
 	}
+	if value == "" {
+		value = "-"
+	}
 	json.Operations = append(json.Operations, GrassControlOperationJson{
 		"songInfo",
 		[]string{value},

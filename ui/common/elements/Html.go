@@ -1,4 +1,4 @@
-package ui
+package elements
 
 type Html struct {
 	html    common

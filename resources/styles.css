@@ -111,6 +111,12 @@ body {
     width: 50%;
 }
 
+#playlist-table-div {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
 /* width */
 ::-webkit-scrollbar {
     width: var(--scrollbar-width);
@@ -261,10 +267,13 @@ input[type="button"].selected {
 
 .search-form {
     margin-bottom: var(--2spacing);
+    display: flex;
+    align-items: center;
 }
 
 .search-form input {
     width: 100%;
+    margin-left: var(--spacing);
 }
 
 .table-div {

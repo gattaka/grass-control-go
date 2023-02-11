@@ -1,4 +1,4 @@
-package ui
+package elements
 
 type Span struct {
 	cmn common

@@ -1,4 +1,4 @@
-package ui
+package elements
 
 type Anchor struct {
 	cmn common
