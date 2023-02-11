@@ -115,3 +115,41 @@ setInterval(() => {
         });
     }
 }, 200);
+
+document.onkeydown = function (event) {
+    // Na vyhledávácím poli klávesy nechytej
+    let searchInput = document.getElementById("search-input")
+    if (document.activeElement === searchInput)
+        return true;
+
+    const keyName = event.key;
+    console.log("'" + keyName + "' code: '" + event.code + "'");
+
+    let consume = true;
+
+    switch (keyName) {
+        case " ":
+        case "MediaPlayPause":
+            ajaxCall("pause");
+            break;
+        case "MediaTrackPrevious":
+            ajaxCall("prev");
+            break;
+        case "MediaTrackNext":
+            ajaxCall("next");
+            break;
+        default:
+            consume = false;
+    }
+
+    if (!consume)
+        return true;
+
+    if (typeof event.stopPropagation != "undefined") {
+        event.stopPropagation();
+    } else {
+        event.cancelBubble = true;
+    }
+    event.preventDefault();
+    return false;
+};

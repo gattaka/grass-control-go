@@ -177,6 +177,7 @@ func createSearchDiv(fromSearch bool, query string) elements.Element {
 		searchInput.SetValue(query)
 	}
 	searchInput.SetName(common.SearchParam)
+	searchInput.SetId("search-input")
 	searchInput.SetAttribute("autocomplete", "do-not-autofill")
 	searchForm.Add(&searchInput)
 
