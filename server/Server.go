@@ -124,28 +124,27 @@ func StartServer(port int, myVLC vlcctrl.VLC, indexer indexer.Indexer, resources
 	// Když se do vlc přidá 1 soubor a 1 adresář, VLC mězi ně pro shuffle rozdělí pravděpodobnost 50:50 na spuštění -- dokud nepadne
 	// adresář, "nerozbalí" ho na jednotlivé soubory a mezi ně znovu rozpočítá pravděpodobnost. První soubor se tedy spouští často opakovaně
 	// než losování konečně padne na adresář
-	addProcess := func(path string, vlcOperaton func(string)) {
+	directSeek := func(r *http.Request, vlcOperaton func(string)) {
+		path := getIdParam(r)
 		for _, item := range indexer.ExpandByPath(path) {
 			vlcOperaton(item.GetPath())
 		}
 	}
-
-	addToPlaylist := func(w http.ResponseWriter, r *http.Request) { addProcess(getIdParam(r), vlcAdd) }
-	addToPlaylistPlay := func(w http.ResponseWriter, r *http.Request) { addProcess(getIdParam(r), vlcAddPlay) }
-
-	searchItems := func(w http.ResponseWriter, r *http.Request, consumer func(string) error) {
+	searchSeek := func(r *http.Request, vlcOperaton func(string)) {
 		searchQuery := getParam(r, common.SearchParam)
-		items := indexer.FindByString(searchQuery)
-		for _, item := range items {
-			ret(w, consumer(prepURL(item.GetPath())))
+		results := indexer.FindByString(searchQuery)
+		for _, result := range results {
+			for _, item := range indexer.ExpandByItem(result) {
+				vlcOperaton(item.GetPath())
+			}
 		}
 	}
-	searchAddToPlaylist := func(w http.ResponseWriter, r *http.Request) {
-		searchItems(w, r, myVLC.Add)
-	}
-	searchAddToPlaylistPlay := func(w http.ResponseWriter, r *http.Request) {
-		searchItems(w, r, func(t string) error { return myVLC.AddStart(t) })
-	}
+
+	directAddToPlaylist := func(w http.ResponseWriter, r *http.Request) { directSeek(r, vlcAdd) }
+	directAddToPlaylistPlay := func(w http.ResponseWriter, r *http.Request) { directSeek(r, vlcAddPlay) }
+
+	searchAddToPlaylist := func(w http.ResponseWriter, r *http.Request) { searchSeek(r, vlcAdd) }
+	searchAddToPlaylistPlay := func(w http.ResponseWriter, r *http.Request) { searchSeek(r, vlcAddPlay) }
 
 	playFromPlaylist := func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(getIdParam(r))
@@ -160,9 +159,11 @@ func StartServer(port int, myVLC vlcctrl.VLC, indexer indexer.Indexer, resources
 		}
 	}
 
-	http.HandleFunc(common.AddEndpoint, func(w http.ResponseWriter, r *http.Request) { fileOrSearch(w, r, addToPlaylist, searchAddToPlaylist) })
+	http.HandleFunc(common.AddEndpoint, func(w http.ResponseWriter, r *http.Request) {
+		fileOrSearch(w, r, directAddToPlaylist, searchAddToPlaylist)
+	})
 	http.HandleFunc(common.AddAndPlayEndpoint, func(w http.ResponseWriter, r *http.Request) {
-		fileOrSearch(w, r, addToPlaylistPlay, searchAddToPlaylistPlay)
+		fileOrSearch(w, r, directAddToPlaylistPlay, searchAddToPlaylistPlay)
 	})
 	http.HandleFunc(common.PlayEndpoint, func(w http.ResponseWriter, r *http.Request) { playFromPlaylist(w, r) })
 	http.HandleFunc(common.RemoveEndpoint, func(w http.ResponseWriter, r *http.Request) { removeFromPlaylist(w, r) })

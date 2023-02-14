@@ -126,6 +126,12 @@ func (idx *Indexer) ExpandByPath(path string) []*Item {
 	return items
 }
 
+func (idx *Indexer) ExpandByItem(item *Item) []*Item {
+	items := make([]*Item, 0)
+	expandByPathRec(item, &items)
+	return items
+}
+
 func expandByPathRec(item *Item, items *[]*Item) {
 	if item.IsDir() {
 		for _, child := range item.items {
