@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 )
 
 type Resources struct {
@@ -35,10 +34,8 @@ func StartServer(port int, myVLC vlcctrl.VLC, indexer indexer.Indexer, resources
 		} else if r.URL.Query().Has(common.DirParam) {
 			// hledá se přímo dle adresáře
 			dirQuery := r.URL.Query().Get(common.DirParam)
-			path := strings.Trim(dirQuery, "/")
-			if len(path) > 0 {
-				parts := strings.Split(path, "/")
-				io.WriteString(w, ui.ConstructPage(indexer.FindByPath(parts), false, dirQuery))
+			if len(dirQuery) > 0 {
+				io.WriteString(w, ui.ConstructPage(indexer.FindByPath(dirQuery), false, dirQuery))
 				return
 			}
 		}
@@ -121,8 +118,20 @@ func StartServer(port int, myVLC vlcctrl.VLC, indexer indexer.Indexer, resources
 	}
 	getIdParam := func(r *http.Request) string { return getParam(r, common.IdParam) }
 
-	addToPlaylist := func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.Add(prepURL(getIdParam(r)))) }
-	addToPlaylistPlay := func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.AddStart(prepURL(getIdParam(r)))) }
+	vlcAdd := func(param string) { myVLC.Add(prepURL(param)) }
+	vlcAddPlay := func(param string) { myVLC.AddStart(prepURL(param)) }
+
+	// Když se do vlc přidá 1 soubor a 1 adresář, VLC mězi ně pro shuffle rozdělí pravděpodobnost 50:50 na spuštění -- dokud nepadne
+	// adresář, "nerozbalí" ho na jednotlivé soubory a mezi ně znovu rozpočítá pravděpodobnost. První soubor se tedy spouští často opakovaně
+	// než losování konečně padne na adresář
+	addProcess := func(path string, vlcOperaton func(string)) {
+		for _, item := range indexer.ExpandByPath(path) {
+			vlcOperaton(item.GetPath())
+		}
+	}
+
+	addToPlaylist := func(w http.ResponseWriter, r *http.Request) { addProcess(getIdParam(r), vlcAdd) }
+	addToPlaylistPlay := func(w http.ResponseWriter, r *http.Request) { addProcess(getIdParam(r), vlcAddPlay) }
 
 	searchItems := func(w http.ResponseWriter, r *http.Request, consumer func(string) error) {
 		searchQuery := getParam(r, common.SearchParam)

@@ -29,6 +29,24 @@ func (idx Indexer) GetAllItems() []*Item {
 	return idx.root.items
 }
 
+func (idx Indexer) FindByItem(path string) (bool, *Item) {
+	chunks := strings.Split(path, "/")
+	item := idx.root
+	for i, chunk := range chunks {
+		// pokud cesta ukazuje na další potomky, ale to, co jsem částečně našel už další potomky nemá, vrať že jsi nenašel nic
+		if i < len(chunks)-1 && !item.isDir {
+			return false, idx.root
+		}
+		for _, child := range item.items {
+			if child.name == chunk {
+				item = child
+				break
+			}
+		}
+	}
+	return true, item
+}
+
 func (idx *Indexer) indexDir(parent *Item) {
 	files, err := os.ReadDir(idx.playerRoot + parent.path)
 	if err != nil {
@@ -66,23 +84,54 @@ func (idx Indexer) findByString(value string, root *Item, items *[]*Item) {
 	}
 }
 
-func (idx Indexer) FindByPath(path []string) []*Item {
+func (idx Indexer) FindByPath(path string) []*Item {
+	path = strings.Trim(path, "/")
+	if path == "" {
+		return idx.root.items
+	}
+	parts := strings.Split(path, "/")
 	items := make([]*Item, 0)
-	idx.findByPath(path, idx.root, &items)
+	idx.findByPath(parts, idx.root, &items)
 	return items
 }
 
 func (idx Indexer) findByPath(path []string, root *Item, items *[]*Item) {
 	value := path[0]
 	for _, itm := range root.items {
-		if itm.name == value && itm.isDir {
-			if len(path) == 1 {
-				*items = append(*items, itm.items...)
+		// nalezena část cesty
+		if itm.name == value {
+			if itm.isDir {
+				if len(path) == 1 {
+					// adresář je buď sám cílem
+					*items = append(*items, itm.items...)
+				} else {
+					// nebo je cíl někde uvnitř
+					path = path[1:]
+					idx.findByPath(path, itm, items)
+				}
 			} else {
-				path = path[1:]
-				idx.findByPath(path, itm, items)
+				// ne-adresář je vždy cílem (nelze procházet)
+				*items = append(*items, itm)
 			}
 			return
 		}
+	}
+}
+
+func (idx *Indexer) ExpandByPath(path string) []*Item {
+	items := make([]*Item, 0)
+	for _, item := range idx.FindByPath(path) {
+		expandByPathRec(item, &items)
+	}
+	return items
+}
+
+func expandByPathRec(item *Item, items *[]*Item) {
+	if item.IsDir() {
+		for _, child := range item.items {
+			expandByPathRec(child, items)
+		}
+	} else {
+		*items = append(*items, item)
 	}
 }
