@@ -54,11 +54,14 @@ func (idx *Indexer) indexDir(parent *Item) {
 	}
 
 	if len(files) > 0 {
-		parent.items = make([]*Item, len(files))
-		for i, file := range files {
+		parent.items = make([]*Item, 0)
+		for _, file := range files {
+			if !file.IsDir() && !isPlayableType(strings.ToLower(file.Name()), []string{".mp3", ".mp4", ".wav", ".flac", ".ogg"}) {
+				continue
+			}
 			dirPath := parent.path + "/" + file.Name()
 			child := Item{name: file.Name(), path: dirPath, isDir: file.IsDir(), parent: parent}
-			parent.items[i] = &child
+			parent.items = append(parent.items, &child)
 			if file.IsDir() {
 				idx.indexDir(&child)
 			}
@@ -130,6 +133,15 @@ func (idx *Indexer) ExpandByItem(item *Item) []*Item {
 	items := make([]*Item, 0)
 	expandByPathRec(item, &items)
 	return items
+}
+
+func isPlayableType(name string, types []string) bool {
+	for _, t := range types {
+		if strings.HasSuffix(name, t) {
+			return true
+		}
+	}
+	return false
 }
 
 func expandByPathRec(item *Item, items *[]*Item) {
