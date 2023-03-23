@@ -56,7 +56,8 @@ func (idx *Indexer) indexDir(parent *Item) {
 	if len(files) > 0 {
 		parent.items = make([]*Item, 0)
 		for _, file := range files {
-			if !file.IsDir() && !isPlayableType(strings.ToLower(file.Name()), []string{".mp3", ".mp4", ".wav", ".flac", ".ogg"}) {
+			if !file.IsDir() && !isPlayableType(strings.ToLower(file.Name()), []string{".asf", ".avi", ".flv", ".ps", ".pva", ".ts", ".webm", ".mkv",
+				".mp3", ".mp4", ".wav", ".flac", ".ogg", ".s3m"}) {
 				continue
 			}
 			dirPath := parent.path + "/" + file.Name()
