@@ -100,6 +100,41 @@ function volumeControlScroll(event, callback) {
     callback(newVal);
 }
 
+var searchInPlaylistSkip = 0;
+var lastSearch = "";
+
+function searchInPlaylist(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+    } else {
+        return;
+    }
+
+    let items = document.querySelectorAll('.playlist-item');
+    let query = document.getElementById("playlist-search-input").value;
+    if (query == "")
+        return;
+    if (lastSearch != query) {
+        searchInPlaylistSkip = 0;
+        lastSearch = query;
+    }
+    let counter = 0;
+    for (var i = 0; i < items.length; i++) {
+        let item = items[i];
+        if (item.innerText.toLowerCase().includes(query.toLowerCase())) {
+            if (counter == searchInPlaylistSkip)
+                item.scrollIntoView();
+            counter++;
+            item.classList.add("highlight");
+        } else {
+            item.classList.remove("highlight");
+        }
+    }
+    searchInPlaylistSkip++;
+    if (searchInPlaylistSkip == counter)
+        searchInPlaylistSkip = 0;
+}
+
 setInterval(() => {
     if (!document.hidden) {
         ajaxCall("/status", json => {
@@ -123,8 +158,6 @@ document.onkeydown = function (event) {
         return true;
 
     const keyName = event.key;
-    console.log("'" + keyName + "' code: '" + event.code + "'");
-
     let consume = true;
 
     switch (keyName) {

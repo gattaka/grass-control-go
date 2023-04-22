@@ -1,13 +1,14 @@
-package ui
+package library
 
 import (
 	"grass-control-go/indexer"
 	"grass-control-go/ui/common"
 	"grass-control-go/ui/common/elements"
+	"grass-control-go/ui/utils"
 	"strings"
 )
 
-func constructLibrary(items []*indexer.Item, fromSearch bool, query string) elements.Element {
+func ConstructLibrary(items []*indexer.Item, fromSearch bool, query string) elements.Element {
 	libraryDiv := elements.Div{}
 	libraryDiv.SetId("library-div")
 
@@ -55,12 +56,12 @@ func createControlsDiv() elements.Element {
 	controlsDiv := elements.Div{}
 	controlsDiv.AddClass("controls-div")
 
-	controlsDiv.Add(elements.NewButton("", prepAjax("pause")).SetId("play-pause-btn"))
-	controlsDiv.Add(elements.NewButton("", prepAjax("prev")).SetId("prev-btn"))
-	controlsDiv.Add(elements.NewButton("", prepAjax("stop")).SetId("stop-btn"))
-	controlsDiv.Add(elements.NewButton("", prepAjax("next")).SetId("next-btn"))
-	controlsDiv.Add(elements.NewButton("", prepAjax("loop")).SetId("loop-btn"))
-	controlsDiv.Add(elements.NewButton("", prepAjax("shuffle")).SetId("shuffle-btn"))
+	controlsDiv.Add(elements.NewButton("", utils.PrepAjax("pause")).SetId("play-pause-btn"))
+	controlsDiv.Add(elements.NewButton("", utils.PrepAjax("prev")).SetId("prev-btn"))
+	controlsDiv.Add(elements.NewButton("", utils.PrepAjax("stop")).SetId("stop-btn"))
+	controlsDiv.Add(elements.NewButton("", utils.PrepAjax("next")).SetId("next-btn"))
+	controlsDiv.Add(elements.NewButton("", utils.PrepAjax("loop")).SetId("loop-btn"))
+	controlsDiv.Add(elements.NewButton("", utils.PrepAjax("shuffle")).SetId("shuffle-btn"))
 
 	controlsDiv.Add(createVolumeControl())
 
@@ -101,9 +102,9 @@ func createLocationDiv(fromSearch bool, query string) elements.Element {
 		tableBtnsParam = common.IdParam
 	}
 
-	tableAddAndPlayBtn := elements.NewButton(common.PlayUnicode, prepAjaxWithParam(common.AddAndPlayEndpoint+"?"+tableBtnsParam+"=", query))
+	tableAddAndPlayBtn := elements.NewButton(common.PlayUnicode, utils.PrepAjaxWithParam(common.AddAndPlayEndpoint+"?"+tableBtnsParam+"=", query))
 	tableAddAndPlayBtn.AddClass(common.TableControlBtnClass)
-	tableAddBtn := elements.NewButton(common.PlusUnicode, prepAjaxWithParam(common.AddEndpoint+"?"+tableBtnsParam+"=", query))
+	tableAddBtn := elements.NewButton(common.PlusUnicode, utils.PrepAjaxWithParam(common.AddEndpoint+"?"+tableBtnsParam+"=", query))
 	tableAddBtn.AddClass(common.TableControlBtnClass)
 	locationDiv.Add(tableAddAndPlayBtn)
 	locationDiv.Add(tableAddBtn)
@@ -116,7 +117,7 @@ func createLocationDiv(fromSearch bool, query string) elements.Element {
 		if lastIndex > 0 {
 			returnQuery = query[:lastIndex]
 		}
-		locationDiv.Add(elements.NewButton("&#11181;", prepDirNavigate(returnQuery)))
+		locationDiv.Add(elements.NewButton("&#11181;", utils.PrepDirNavigate(returnQuery)))
 		locationDiv.Add(elements.NewSpan("Vypisuji výsledek adresáře \"" + query + "\""))
 	}
 
@@ -132,13 +133,13 @@ func createTable(items []*indexer.Item) elements.Element {
 	table.Columns[0] = elements.TableColumn[indexer.Item]{Name: "Název", Renderer: func(itm indexer.Item) string {
 		btnsDiv := elements.Div{}
 		btnsDiv.AddClass(common.ControlBtnsDivClass)
-		addAndPlayBtn := elements.NewButton(common.PlayUnicode, prepAjaxWithParam(common.AddAndPlayEndpoint+"?"+common.IdParam+"=", itm.GetPath()))
-		addBtn := elements.NewButton(common.PlusUnicode, prepAjaxWithParam(common.AddEndpoint+"?"+common.IdParam+"=", itm.GetPath()))
+		addAndPlayBtn := elements.NewButton(common.PlayUnicode, utils.PrepAjaxWithParam(common.AddAndPlayEndpoint+"?"+common.IdParam+"=", itm.GetPath()))
+		addBtn := elements.NewButton(common.PlusUnicode, utils.PrepAjaxWithParam(common.AddEndpoint+"?"+common.IdParam+"=", itm.GetPath()))
 		btnsDiv.Add(addAndPlayBtn)
 		btnsDiv.Add(addBtn)
 		render := btnsDiv.Render()
 		if itm.IsDir() {
-			dirBtn := elements.NewButton(itm.GetName(), prepDirNavigate(itm.GetPath()))
+			dirBtn := elements.NewButton(itm.GetName(), utils.PrepDirNavigate(itm.GetPath()))
 			render += dirBtn.Render()
 		} else {
 			render += elements.NewSpan(itm.GetName()).Render()
@@ -151,12 +152,12 @@ func createTable(items []*indexer.Item) elements.Element {
 		}
 		btnsDiv := elements.Div{}
 		btnsDiv.AddClass(common.ControlBtnsDivClass)
-		addAndPlayBtn := elements.NewButton(common.PlayUnicode, prepAjaxWithParam(common.AddAndPlayEndpoint+"?"+common.IdParam+"=", itm.GetParent().GetPath()))
-		addBtn := elements.NewButton(common.PlusUnicode, prepAjaxWithParam(common.AddEndpoint+"?"+common.IdParam+"=", itm.GetParent().GetPath()))
+		addAndPlayBtn := elements.NewButton(common.PlayUnicode, utils.PrepAjaxWithParam(common.AddAndPlayEndpoint+"?"+common.IdParam+"=", itm.GetParent().GetPath()))
+		addBtn := elements.NewButton(common.PlusUnicode, utils.PrepAjaxWithParam(common.AddEndpoint+"?"+common.IdParam+"=", itm.GetParent().GetPath()))
 		btnsDiv.Add(addAndPlayBtn)
 		btnsDiv.Add(addBtn)
 		render := btnsDiv.Render()
-		dirBtn := elements.NewButton(itm.GetParent().GetName(), prepDirNavigate(itm.GetParent().GetPath()))
+		dirBtn := elements.NewButton(itm.GetParent().GetName(), utils.PrepDirNavigate(itm.GetParent().GetPath()))
 		render += dirBtn.Render()
 		return render
 	}}

@@ -197,7 +197,11 @@ input[type="button"].selected {
     border: 1px solid #2196f3;
 }
 
-.controls-div, .location-div {
+.playlist-controls-div input[type="button"] {
+    margin-right: var(--spacing);
+}
+
+.controls-div, .location-div, .playlist-controls-div {
     padding: 0 0 var(--2spacing) 0;
     display: flex;
     align-items: center;
@@ -381,4 +385,8 @@ input[type="button"].selected {
 
 .control-buttons-div input[type="button"] {
     width: 28px;
+}
+
+.highlight {
+    background: yellow;
 }

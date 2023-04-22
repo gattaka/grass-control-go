@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+// Mám vlastní strukturu a parser, protože ta vestavěná ve vlctrl nemá info o Umělec/Album apod.
 type VlcStatus struct {
 	Fullscreen int `json:"fullscreen"`
 	Stats      struct {
@@ -183,9 +184,14 @@ func processCurrentSong(result VlcStatus, json *GrassControlStatusJson) {
 	})
 }
 
-func UpdateStatus(errorPending *error, vlcStatusJSON string) string {
+func ParseStatus(vlcStatusJSON string) VlcStatus {
 	var vlcStatus VlcStatus
 	json.Unmarshal([]byte(vlcStatusJSON), &vlcStatus)
+	return vlcStatus
+}
+
+func UpdateStatus(errorPending *error, vlcStatusJSON string) string {
+	vlcStatus := ParseStatus(vlcStatusJSON)
 	operations := GrassControlStatusJson{}
 
 	processShuffle(vlcStatus, &operations)

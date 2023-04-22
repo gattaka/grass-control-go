@@ -5,6 +5,7 @@ import (
 	"grass-control-go/indexer"
 	"grass-control-go/ui"
 	"grass-control-go/ui/common"
+	"grass-control-go/ui/playlist"
 	"grass-control-go/utils"
 	"io"
 	"log"
@@ -66,6 +67,26 @@ func StartServer(port int, myVLC vlcctrl.VLC, indexer indexer.Indexer, resources
 	})
 
 	http.HandleFunc("/clear", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.EmptyPlaylist()) })
+	http.HandleFunc("/clearExceptPlaying", func(w http.ResponseWriter, r *http.Request) {
+		statusJson, _ := myVLC.RequestMaker("/requests/status.json")
+		status := utils.ParseStatus(statusJson)
+		currentplid := status.Currentplid
+
+		if currentplid == -1 {
+			ret(w, myVLC.EmptyPlaylist())
+			return
+		}
+
+		playlistJson, _ := myVLC.RequestMaker("/requests/playlist.json")
+		playlist, _ := utils.ParsePlaylist(playlistJson)
+
+		for _, item := range *playlist {
+			id, _ := strconv.Atoi(item.Id)
+			if id != currentplid {
+				myVLC.Delete(id)
+			}
+		}
+	})
 	http.HandleFunc("/pause", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.Pause()) })
 	http.HandleFunc("/next", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.Next()) })
 	http.HandleFunc("/prev", func(w http.ResponseWriter, r *http.Request) { ret(w, myVLC.Previous()) })
@@ -100,7 +121,7 @@ func StartServer(port int, myVLC vlcctrl.VLC, indexer indexer.Indexer, resources
 			return
 		}
 		items, hash := utils.ParsePlaylist(resp)
-		render := ui.ConstructPlaylistTable(*items).Render()
+		render := playlist.ConstructPlaylistTable(*items).Render()
 		io.WriteString(w, utils.ConstructPlaylistJSON(render, hash))
 	})
 

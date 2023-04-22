@@ -3,6 +3,9 @@ package ui
 import (
 	"grass-control-go/indexer"
 	"grass-control-go/ui/common/elements"
+	"grass-control-go/ui/library"
+	"grass-control-go/ui/playlist"
+	"grass-control-go/ui/utils"
 )
 
 func ConstructPage(items []*indexer.Item, fromSearch bool, query string) string {
@@ -29,15 +32,15 @@ func ConstructPage(items []*indexer.Item, fromSearch bool, query string) string 
 
 	menuRightDiv := elements.Div{}
 	menuDiv.Add(&menuRightDiv)
-	menuRightDiv.Add(elements.NewAnchorJS("Ukončit", prepAjax("/quit")))
+	menuRightDiv.Add(elements.NewAnchorJS("Ukončit", utils.PrepAjax("/quit")))
 
 	mainDiv := elements.Div{}
 	mainDiv.SetId("main-div")
 	html.Add(&mainDiv)
 
-	mainDiv.Add(constructLibrary(items, fromSearch, query))
+	mainDiv.Add(library.ConstructLibrary(items, fromSearch, query))
 
-	mainDiv.Add(constructPlaylist())
+	mainDiv.Add(playlist.ConstructPlaylist())
 
 	result := html.Render()
 	return result

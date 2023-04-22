@@ -1,21 +1,19 @@
-package ui
+package playlist
 
 import (
 	"grass-control-go/ui/common"
 	"grass-control-go/ui/common/elements"
+	uiUtils "grass-control-go/ui/utils"
 	"grass-control-go/utils"
 	"strconv"
 )
 
-func constructPlaylist() *elements.Div {
+func ConstructPlaylist() *elements.Div {
 	playlistDiv := elements.Div{}
 	playlistDiv.SetId("playlist-div")
 
-	controlDiv := elements.Div{}
-	controlDiv.AddClass("location-div")
-	playlistDiv.Add(&controlDiv)
-
-	controlDiv.Add(elements.NewButton(common.CrossUnicode, prepAjax("clear")))
+	playlistDiv.Add(createSearchDiv())
+	playlistDiv.Add(createControlsDiv())
 
 	tableDiv := elements.Div{}
 	tableDiv.SetId("playlist-table-div")
@@ -23,6 +21,31 @@ func constructPlaylist() *elements.Div {
 	tableDiv.Add(ConstructPlaylistTable(nil))
 
 	return &playlistDiv
+}
+
+func createControlsDiv() elements.Element {
+	controlDiv := elements.Div{}
+	controlDiv.AddClass("playlist-controls-div")
+
+	controlDiv.Add(elements.NewButton("Vyčistit", uiUtils.PrepAjax("clear")))
+	controlDiv.Add(elements.NewButton("Nechat jet hrající", uiUtils.PrepAjax("clearExceptPlaying")))
+
+	return &controlDiv
+}
+
+func createSearchDiv() elements.Element {
+	searchDiv := elements.Div{}
+	searchDiv.AddClass("search-form")
+	searchDiv.Add(elements.NewSpan("Vyhledat"))
+
+	searchInput := elements.TextInput{}
+	searchInput.SetName(common.SearchParam)
+	searchInput.SetId("playlist-search-input")
+	searchInput.SetAttribute("autocomplete", "do-not-autofill")
+	searchInput.SetAttribute("onkeypress", "searchInPlaylist(event)")
+	searchDiv.Add(&searchInput)
+
+	return &searchDiv
 }
 
 func ConstructPlaylistTable(items []*utils.VlcPlaylistNode) *elements.Table[utils.VlcPlaylistNode] {
@@ -39,14 +62,14 @@ func ConstructPlaylistTable(items []*utils.VlcPlaylistNode) *elements.Table[util
 	nameColumn := elements.TableColumn[utils.VlcPlaylistNode]{Name: "Název", Renderer: func(itm utils.VlcPlaylistNode) string {
 		btnsDiv := elements.Div{}
 		btnsDiv.AddClass(common.ControlBtnsDivClass)
-		removeBtn := elements.NewButton(common.CrossUnicode, prepAjaxWithParam(common.RemoveEndpoint+"?"+common.IdParam+"=", itm.Id))
+		removeBtn := elements.NewButton(common.CrossUnicode, uiUtils.PrepAjaxWithParam(common.RemoveEndpoint+"?"+common.IdParam+"=", itm.Id))
 		removeBtn.AddClass(common.TableControlBtnClass)
-		playBtn := elements.NewButton(common.PlayUnicode, prepAjaxWithParam(common.PlayEndpoint+"?"+common.IdParam+"=", itm.Id))
+		playBtn := elements.NewButton(common.PlayUnicode, uiUtils.PrepAjaxWithParam(common.PlayEndpoint+"?"+common.IdParam+"=", itm.Id))
 		playBtn.AddClass(common.TableControlBtnClass)
 		btnsDiv.Add(removeBtn)
 		btnsDiv.Add(playBtn)
 		render := btnsDiv.Render()
-		render += elements.NewSpan(itm.Name).Render()
+		render += elements.NewSpan(itm.Name).AddClass("playlist-item").Render()
 		return render
 	}}
 	nameColumn.Width = 80
